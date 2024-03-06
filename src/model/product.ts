@@ -8,6 +8,10 @@ interface ProductDocument{
     price: number;
     quantity: number;
     description: string;
+    topSelling: string;
+    featured: "yes" | "no";
+    specialProduct: "yes" | "no";
+    discount: number;
 }
 
 const productSchema = new Schema<ProductDocument>({
@@ -35,6 +39,21 @@ const productSchema = new Schema<ProductDocument>({
     description:{
         type: String,
         required: true
+    },
+    topSelling:{
+        type: String,
+    },
+    featured:{
+        type: String,
+        default: 'no'
+    },
+    specialProduct:{
+        type: String,
+        default: "no"
+    },
+    discount:{
+        type: Number,
+        default: 0
     }
 }, {timestamps: true});
 export default model("Product", productSchema) as Model<ProductDocument>;
