@@ -8,6 +8,7 @@ interface UserDocument{
     password: string;
     role: "user" | 'admin';
     token : string;
+    favourite: [{productId: ObjectId}]
 }
 
 interface UserMethods {
@@ -33,6 +34,10 @@ const userSchema = new Schema<UserDocument, Model<UserDocument>, UserMethods>({
     },
     token:{
         type: String
+    },
+    favourite:{
+        type: [{productId: Schema.Types.ObjectId}],
+        ref: "Product"
     }
 }, {timestamps: true});
 
