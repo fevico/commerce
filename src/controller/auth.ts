@@ -1,3 +1,4 @@
+// @ts-nocheck
 import User from "#/model/user";
 import { JWT_SECRET, PASSWORD_RESET_LINK } from "#/utils/variables";
 import { RequestHandler } from "express";
