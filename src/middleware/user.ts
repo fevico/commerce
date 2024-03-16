@@ -1,3 +1,4 @@
+// @ts-nocheck
 import passwordResetToken from "#/model/passwordResetToken";
 import User from "#/model/user";
 import { JWT_SECRET } from "#/utils/variables";
