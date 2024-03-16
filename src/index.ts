@@ -4,8 +4,16 @@ import './db'
 import categoryRouter from './routers/category'
 import productRouter from './routers/product'
 import authRouter from './routers/auth'
+import cors from 'cors'
 
 const app = express();
+
+app.use(
+    cors({
+      origin: "*",
+      credentials: false,
+    })
+  );
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
