@@ -3,9 +3,11 @@ import { Model, model, Schema, ObjectId } from "mongoose";
 interface orderDocument {
     _id: ObjectId;
     userId: ObjectId;
-    products: [{productId: ObjectId, quantity: number}];
+    productId:  ObjectId;
+    quantity: number;
     address: string;
     phone: number;
+    status: "confirmed" | "pending" | "cancelled";
 }
 
 const orderSchema = new Schema<orderDocument>({
@@ -13,9 +15,12 @@ const orderSchema = new Schema<orderDocument>({
         type: Schema.Types.ObjectId,
         required: true
     },
-    products:{
-        type: [{productId: Schema.Types.ObjectId, 
-        quantity: Number}]
+    productId:{
+        type: Schema.Types.ObjectId,
+        ref: "Product"
+    },
+    quantity:{
+        type: Number,
     },
     address:{
         type: String,
@@ -24,6 +29,10 @@ const orderSchema = new Schema<orderDocument>({
     phone: {
         type: Number,
         required: true
+    }, 
+    status:{
+        type: String,
+        default: "pending"
     }
 }, {timestamps: true})
 

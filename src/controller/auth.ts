@@ -23,7 +23,7 @@ export const signIn: RequestHandler = async (req, res)=>{
     // compare password 
     const matched = await user.comparePassword(password)
     if(!matched) return res.status(403).json({message: "Email/Password Mismatch!"});
-    const token = jwt.sign({userId: user._id}, JWT_SECRET);
+    const token = jwt.sign({userId: user._id, role: user.role}, JWT_SECRET);
     user.token = (token);
     await user.save();
     res.json({
@@ -31,7 +31,8 @@ export const signIn: RequestHandler = async (req, res)=>{
             id: user._id,
             name: user.name,
             email: user.email,
-        }
+        },
+        token
     });
 }
 

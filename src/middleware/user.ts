@@ -37,9 +37,27 @@ export const mustAuth: RequestHandler = async(req, res, next)=>{
         name: user.name,
         email: user.email,
         role: user.role
-      },    
+      },     
       
       req.token = token;
 
     next()
 };
+
+export const isAdmin: RequestHandler = async (req, res, next) =>{
+    const {authorization} = req.headers;
+    const token = authorization?.split("Bearer ")[1];
+    if(!token) return res.status(403).json({error: "Unauthorized request"});
+    const payload = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const role = payload.role;
+    if(role !== "admin"){
+        return res.status(403).json({error: "Unauthorized request!"})
+    }
+    req.user = {
+        id: payload.userId,
+        role: role
+    }
+
+    next() 
+
+}

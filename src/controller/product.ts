@@ -1,5 +1,6 @@
 import { RequestHandler } from "express";
 import Product from "#/model/product";
+import User from "#/model/user";
 
 export const getAllproduct: RequestHandler = async(req, res)=>{
     const products = await Product.find();
@@ -15,6 +16,9 @@ export const getProductById: RequestHandler = async(req, res)=>{
 }
 
 export const createProduct: RequestHandler = async (req, res) =>{
+    // const user = req.user.id;
+    // const findUser =await User.findById(user)
+    // if(!findUser) return res.status(400).json({error: "Cannot create product"});
     const {name, description, price, image, categoryId, quantity} = req.body;
     const product = new Product({name, description, price, image, categoryId, quantity});
     await product.save();
