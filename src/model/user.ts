@@ -8,7 +8,9 @@ interface UserDocument{
     password: string;
     role: "user" | 'admin';
     token : string;
-    favourite: [{productId: ObjectId}]
+    address: string;
+    phone: string;
+    favourite: ObjectId[]
 }
 
 interface UserMethods {
@@ -21,7 +23,7 @@ const userSchema = new Schema<UserDocument, Model<UserDocument>, UserMethods>({
         required: true,
     },
     email: {
-        type: String,
+        type: String, 
         required: true,
     },
     password:{
@@ -35,16 +37,23 @@ const userSchema = new Schema<UserDocument, Model<UserDocument>, UserMethods>({
     token:{
         type: String
     },
-    favourite:{
-        type: [{productId: Schema.Types.ObjectId}],
+    address:{
+        type: String,
+    },
+    phone: {
+        type: String
+    },
+    favourite: [{
+        type: Schema.Types.ObjectId,
         ref: "Product"
-    }
+    }]
+    
 }, {timestamps: true});
 
 userSchema.pre('save', async function (next) {
     // Hash the password
     if (this.isModified("password")) {
-      this.password = await hash(this.password, 10);
+      this.password = await hash(this.password, 10); 
     }
     next();
   });

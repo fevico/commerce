@@ -1,6 +1,7 @@
 import { RequestHandler } from "express";
 import Product from "#/model/product";
 import User from "#/model/user";
+import { isValidObjectId } from "mongoose";
 
 export const getAllproduct: RequestHandler = async(req, res)=>{
     const products = await Product.find();
@@ -39,3 +40,80 @@ export const deleteproduct: RequestHandler = async (req, res) =>{
     if(!product) return res.status(400).json({message: "Something went wrong!"});
     res.json({message: true});
 }
+export const addToFavourite: RequestHandler = async (req, res) => {
+    const { favourite } = req.body;
+    const userId = req.user.id;
+
+    if (!isValidObjectId(favourite)) {
+        return res.status(400).json({ message: "Invalid product id!" });
+    }
+
+    // Check if the product exists
+    const product = await Product.findById(favourite);
+    if (!product) {
+        return res.status(400).json({ message: "Product not found! Cannot add to favorites." });
+    }
+
+    // Check if the product is already in the user's favorites list
+    const user = await User.findById(userId);
+    if (!user) {
+        return res.status(404).json({ message: "User not found! Cannot add product to favorites." });
+    }
+
+    const alreadyInFavorites = user.favourite.includes(favourite);
+    if (alreadyInFavorites) {
+        return res.status(400).json({ message: "Product is already in favorites." });
+    }
+
+    // Update the user's favorites list
+    user.favourite.push(favourite);
+    await user.save();
+
+    res.json({ message: "Product added to favorites successfully." });
+};
+
+export const removeFromFavourite: RequestHandler = async (req, res) => {
+    const { productId } = req.body;
+    const userId = req.user.id;
+
+    if (!isValidObjectId(productId)) {
+        return res.status(400).json({ message: "Invalid product id!" });
+    }
+
+    // Check if the product exists
+    const product = await Product.findById(productId);
+    if (!product) {
+        return res.status(400).json({ message: "Product not found! Cannot remove from favorites." });
+    }
+
+    // Update the user's favorites list
+    const user = await User.findByIdAndUpdate(userId, { $pull: { favourite: productId } }, { new: true });
+    if (!user) {
+        return res.status(404).json({ message: "User not found! Cannot remove product from favorites." });
+    }
+
+    res.json({ message: "Product removed from favorites successfully." });
+};
+
+export const getUserFavorites: RequestHandler = async (req, res) => {
+    const userId = req.user.id;
+
+    console.log(userId);
+
+    try {
+        // Find the user by userId and populate the 'favourite' field with product details
+        const user = await User.findById(userId).populate('favourite');
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found!" });
+        }
+
+        res.json({ favorites: user.favourite });
+    } catch (error) {
+        console.error("Error fetching user favorites:", error);
+        res.status(500).json({ message: "An error occurred while fetching user favorites" });
+    }
+};
+
+
+

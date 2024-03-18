@@ -91,3 +91,11 @@ export const updatePassword: RequestHandler = async(req, res)=>{
     sendPassResetSuccessEmail(user?.name, user.email) 
     res.json({message: "Password Reset successfully."})
 }
+
+export const updateProfile: RequestHandler = async (req, res) =>{
+  const {address, phone} = req.body
+  const userId = req.user.id;
+  const user = await User.findByIdAndUpdate(userId, {address, phone});
+  if(!user) return res.status(403).json({error: "Unauthorized request!"})
+  res.json({message: "Profile updated sucessfully!"});
+}
