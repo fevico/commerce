@@ -20,8 +20,8 @@ export const createProduct: RequestHandler = async (req, res) =>{
     // const user = req.user.id;
     // const findUser =await User.findById(user)
     // if(!findUser) return res.status(400).json({error: "Cannot create product"});
-    const {name, description, price, image, categoryId, quantity} = req.body;
-    const product = new Product({name, description, price, image, categoryId, quantity});
+    const {name, description, price, image, categoryId, quantity, featured, discount} = req.body;
+    const product = new Product({name, description, price, image, categoryId, quantity, featured, discount});
     await product.save();
     res.json({product});
 }

@@ -8,7 +8,7 @@ interface ProductDocument{
     price: number;
     quantity: number;
     description: string;
-    topSelling: string;
+    topSelling: number;
     featured: "yes" | "no";
     discount: number;
 }
@@ -40,7 +40,8 @@ const productSchema = new Schema<ProductDocument>({
         required: true
     },
     topSelling:{
-        type: String,
+        type: Number,
+        default: 0
     },
     featured:{
         type: String,
