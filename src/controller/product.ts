@@ -28,7 +28,7 @@ export const createProduct: RequestHandler = async (req, res) =>{
 
 export const updateProduct: RequestHandler = async (req, res) =>{
     const {productId} = req.params;
-    const {name, description, price, image, categoryId, quantity} = req.body;
+    const {name, description, price, image, categoryId, quantity, featured, discount} = req.body;
     const product = await Product.findByIdAndUpdate(productId, req.body, {new: true});
     if(!product) return res.status(400).json({message: "product not found!"});
     res.json({product});
