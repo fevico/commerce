@@ -17,9 +17,7 @@ export const getProductById: RequestHandler = async(req, res)=>{
 }
 
 export const createProduct: RequestHandler = async (req, res) =>{
-    // const user = req.user.id;
-    // const findUser =await User.findById(user)
-    // if(!findUser) return res.status(400).json({error: "Cannot create product"});
+
     const {name, description, price, image, categoryId, quantity} = req.body;
     const product = new Product({name, description, price, image, categoryId, quantity});
     await product.save();
@@ -97,8 +95,6 @@ export const removeFromFavourite: RequestHandler = async (req, res) => {
 
 export const getUserFavorites: RequestHandler = async (req, res) => {
     const userId = req.user.id;
-
-    console.log(userId);
 
     try {
         // Find the user by userId and populate the 'favourite' field with product details

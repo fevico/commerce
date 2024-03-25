@@ -7,7 +7,7 @@ interface orderDocument {
     quantity: number;
     address: string;
     phone: number;
-    status: "confirmed" | "pending" | "cancelled";
+    status: "confirmed" | "pending" | "cancelled";  
 }
 
 const orderSchema = new Schema<orderDocument>({
