@@ -18,7 +18,7 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(express.static("src/public")); 
+app.use(express.static("src/public"));
 app.use('/category', categoryRouter);
 app.use('/product', productRouter);
 app.use('/auth', authRouter);

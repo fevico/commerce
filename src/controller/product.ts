@@ -17,16 +17,18 @@ export const getProductById: RequestHandler = async(req, res)=>{
 }
 
 export const createProduct: RequestHandler = async (req, res) =>{
-
-    const {name, description, price, image, categoryId, quantity} = req.body;
-    const product = new Product({name, description, price, image, categoryId, quantity});
+    // const user = req.user.id;
+    // const findUser =await User.findById(user)
+    // if(!findUser) return res.status(400).json({error: "Cannot create product"});
+    const {name, description, price, image, categoryId, quantity, featured, discount} = req.body;
+    const product = new Product({name, description, price, image, categoryId, quantity, featured, discount});
     await product.save();
     res.json({product});
 }
 
 export const updateProduct: RequestHandler = async (req, res) =>{
     const {productId} = req.params;
-    const {name, description, price, image, categoryId, quantity} = req.body;
+    const {name, description, price, image, categoryId, quantity, featured, discount} = req.body;
     const product = await Product.findByIdAndUpdate(productId, req.body, {new: true});
     if(!product) return res.status(400).json({message: "product not found!"});
     res.json({product});

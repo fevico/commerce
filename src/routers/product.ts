@@ -13,4 +13,4 @@ router.post('/add-to-fav', mustAuth, addToFavourite);
 router.post('/remove-from-fav', mustAuth, removeFromFavourite)
 router.get('/user-fav', mustAuth, getUserFavorites)
 
-export default router 
+export default router; 
