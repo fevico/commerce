@@ -1,9 +1,9 @@
-import { Model, model, ObjectId, Schema } from "mongoose";
+import { Model, model, Schema, Types } from "mongoose";
 
 interface ProductDocument{
-    _id: ObjectId;
+    _id: Types.ObjectId;
     name: string;
-    categoryId: ObjectId;
+    categoryId: Types.ObjectId;
     image: string;
     price: number;
     quantity: number;
@@ -50,6 +50,7 @@ const productSchema = new Schema<ProductDocument>({
     discount:{
         type: Number,
         default: 0
-    }
+    },
 }, {timestamps: true});
+
 export default model("Product", productSchema) as Model<ProductDocument>;
