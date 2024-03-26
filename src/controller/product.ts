@@ -139,13 +139,3 @@ export const getUserFavorites: RequestHandler = async (req, res) => {
       .json({ message: "An error occurred while fetching user favorites" });
   }
 };
-
-export const clearFavourites: RequestHandler = async (req, res) => {
-  const userId = req.user.id;
-
-  try {
-    // Find the user by userId and update the 'favourite' field with an empty array
-  } catch (err) {
-    console.error(err);
-  }
-};
