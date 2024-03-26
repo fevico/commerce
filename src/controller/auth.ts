@@ -109,3 +109,6 @@ export const updateProfile: RequestHandler = async (req, res) => {
   if (!user) return res.status(403).json({ error: "Unauthorized request!" });
   res.json({ message: "Profile updated sucessfully!" });
 };
+
+
+
