@@ -25,7 +25,9 @@ export const mustAuth: RequestHandler = async(req, res, next)=>{
 
     const token = authorization?.split("Bearer ")[1];
     if(!token) return res.status(403).json({error: "Unauthorized request"});
-
+    
+    // const decoded = jwt.decode(token)
+    // console.log(decoded)
 
     const payload = jwt.verify(token, JWT_SECRET) as JwtPayload;
     const id = payload.userId;

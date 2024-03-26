@@ -6,6 +6,7 @@ import categoryRouter from './routers/category'
 import productRouter from './routers/product'
 import authRouter from './routers/auth'
 import orderRouter from './routers/order'
+import paymentRouter from './routers/payment';
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use('/category', categoryRouter);
 app.use('/product', productRouter);
 app.use('/auth', authRouter);
 app.use('/order', orderRouter);
+app.use('/payment', paymentRouter);
 
 const PORT = 5004;
 

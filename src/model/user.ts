@@ -10,7 +10,7 @@ interface UserDocument{
     token : string;
     address: string;
     phone: string;
-    favourite: ObjectId[]
+    favourite: ObjectId[];
 }
 
 interface UserMethods {

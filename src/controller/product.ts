@@ -15,7 +15,7 @@ export const getProductById: RequestHandler = async(req, res)=>{
      if(!product) return res.status(400).json({message: "Something went wrong!"});
     res.json({product});
 }
-
+ 
 export const createProduct: RequestHandler = async (req, res) =>{
     // const user = req.user.id;
     // const findUser =await User.findById(user)
@@ -103,13 +103,13 @@ export const getUserFavorites: RequestHandler = async (req, res) => {
         const user = await User.findById(userId).populate('favourite');
 
         if (!user) {
-            return res.status(404).json({ message: "User not found!" });
-        }
+            return res.status(404).json({ message: "User not found!"});
+        } 
 
         res.json({ favorites: user.favourite });
     } catch (error) {
         console.error("Error fetching user favorites:", error);
-        res.status(500).json({ message: "An error occurred while fetching user favorites" });
+        res.status(500).json({ message: "An error occurred while fetching user favorites" }); 
     }
 };
 

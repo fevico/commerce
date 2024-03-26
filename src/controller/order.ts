@@ -2,12 +2,12 @@ import { RequestHandler } from "express";
 import Order from "#/model/order";
 import User from "#/model/user";
 
-export const createOrder: RequestHandler = async (req, res) => {
-    const userId = req.user.id;
-    const {phone, address, productId, quantity} = req.body;
-    const  order = await Order.create({userId, phone, address, productId, quantity})
-    res.json({order})
-}
+// export const createOrder: RequestHandler = async (req, res) => {
+//     const userId = req.user.id;
+//     const {phone, address, productId, quantity} = req.body;
+//     const  order = await Order.create({userId, phone, address, productId, quantity})
+//     res.json({order})
+// }
 
 
 export const getAllUserOrders: RequestHandler = async (req, res) => {
@@ -100,19 +100,19 @@ export const getOrderById: RequestHandler = async (req, res) => {
 export const confirmedOrderStatus: RequestHandler = async (req, res) => {
     const orderId = req.params;
     const order = await Order.findOne({orderId})
-    if(order?.status === "pending") {
-        order.status = "confirmed"
+    if(order?.orderStatus === "pending") {
+        order.orderStatus = "confirmed"
     }
     await order?.save();
     res.json({order})
 }
 
-export const cancellOrderStatus: RequestHandler = async (req, res) =>{
-    const orderId = req.params;
-    const order = await Order.findOne({orderId})
-    if(order?.status === "pending") {
-        order.status = "cancelled"
-    }
-    await order?.save();
-    res.json({order})
-}
+// export const cancellOrderStatus: RequestHandler = async (req, res) =>{
+//     const orderId = req.params;
+//     const order = await Order.findOne({orderId})
+//     if(order?.orderStatus === "pending") {
+//         order.orderStatus = "cancelled"
+//     }
+//     await order?.save();
+//     res.json({order})
+// }

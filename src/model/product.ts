@@ -51,5 +51,5 @@ const productSchema = new Schema<ProductDocument>({
         type: Number,
         default: 0
     }
-}, {timestamps: true});
+}, {timestamps: true}); 
 export default model("Product", productSchema) as Model<ProductDocument>;
