@@ -73,7 +73,7 @@ router.get("/verify", async function (req, res) { // Corrected function async sy
 
       respaystack.on("end", async () => { // Mark the callback function as async
         const responseData = JSON.parse(data);
-        console.log(responseData); // Log the response for debugging purposes
+        // console.log(responseData); // Log the response for debugging purposes
 
         // Check if payment was successful
         if (
