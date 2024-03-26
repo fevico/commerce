@@ -1,12 +1,11 @@
 import {
-    addToFavourite,
+  addToFavourite,
+  clearFavourites,
   createProduct,
   deleteproduct,
   getAllproduct,
   getProductById,
   getUserFavorites,
-//   toggleFavourite,
-  removeFromFavourite,
   updateProduct,
 } from "#/controller/product";
 import { isAdmin, mustAuth } from "#/middleware/user";
@@ -18,12 +17,10 @@ router.get("/products", getAllproduct);
 router.get("/user-fav", mustAuth, getUserFavorites);
 router.get("/:productId", getProductById);
 router.post("/create-product", mustAuth, isAdmin, createProduct);
-// router.post("/fav", mustAuth, toggleFavourite);
-
+router.post("/clear-fav", mustAuth, clearFavourites);
 router.post("/add-to-fav", mustAuth, addToFavourite);
-router.post("/remove-from-fav", mustAuth, removeFromFavourite);
+router.post("/remove-from-fav", mustAuth, clearFavourites);
 router.patch("/:productId", mustAuth, isAdmin, updateProduct);
 router.delete("/:productId", mustAuth, isAdmin, deleteproduct);
-
 
 export default router;
