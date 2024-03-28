@@ -72,6 +72,7 @@ export const deleteproduct: RequestHandler = async (req, res) => {
     return res.status(400).json({ message: "Something went wrong!" });
   res.json({ message: true });
 };
+
 export const addToFavourite: RequestHandler = async (req, res) => {
   const { favourite } = req.body;
   const userId = req.user.id;
@@ -148,47 +149,48 @@ export const removeFromFavourite: RequestHandler = async (req, res) => {
 
   res.json({ favorites: updatedUser.favourite });
 };
-// export const toggleFavourite: RequestHandler = async (req, res) => {
-//     const { productId } = req.body;
-//     const userId = req.user.id;
+
+export const toggleFavourite: RequestHandler = async (req, res) => {
+    const { productId } = req.body;
+    const userId = req.user.id;
   
-//     if (!isValidObjectId(productId)) {
-//       return res.status(400).json({ message: "Invalid product id!" });
-//     }
+    if (!isValidObjectId(productId)) {
+      return res.status(400).json({ message: "Invalid product id!" });
+    }
   
-//     try {
-//       let updatedFavorites;
+    try {
+      let updatedFavorites;
   
-//       // Check if the product exists in the user's favorites list
-//       const user = await User.findById(userId);
-//       if (!user) {
-//         return res
-//           .status(404)
-//           .json({ message: "User not found! Cannot update favorites." });
-//       }
+      // Check if the product exists in the user's favorites list
+      const user = await User.findById(userId);
+      if (!user) {
+        return res
+          .status(404)
+          .json({ message: "User not found! Cannot update favorites." });
+      }
   
-//       const index = user.favourite.indexOf(productId);
-//       if (index !== -1) {
-//         // Product exists in favorites, remove it
-//         user.favourite.splice(index, 1);
-//         await user.save();
-//         updatedFavorites = user.favourite;
-//       } else {
-//         // Product doesn't exist in favorites, add it
-//         user.favourite.push(productId);
-//         await user.save();
-//         updatedFavorites = user.favourite;
-//       }
+      const index = user.favourite.indexOf(productId);
+      if (index !== -1) {
+        // Product exists in favorites, remove it
+        user.favourite.splice(index, 1);
+        await user.save();
+        updatedFavorites = user.favourite;
+      } else {
+        // Product doesn't exist in favorites, add it
+        user.favourite.push(productId);
+        await user.save();
+        updatedFavorites = user.favourite;
+      }
   
-//       // Fetch updated user favorites
-//       const updatedUser = await User.findById(userId).populate("favourite");
+      // Fetch updated user favorites
+      const updatedUser = await User.findById(userId).populate("favourite");
   
-//       res.json({ favorites: updatedUser.favourite });
-//     } catch (error) {
-//       console.error("Error toggling favorite:", error);
-//       res.status(500).json({ message: "An error occurred while toggling favorite" });
-//     }
-//   };
+      res.json({ favorites: updatedUser.favourite });
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      res.status(500).json({ message: "An error occurred while toggling favorite" });
+    }
+  };
   
 export const getUserFavorites: RequestHandler = async (req, res) => {
   const userId = req.user.id;
@@ -211,3 +213,17 @@ export const getUserFavorites: RequestHandler = async (req, res) => {
       .json({ message: "An error occurred while fetching user favorites" });
   }
 };
+
+export const deleteUserFavourite: RequestHandler = async (req, res) => {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+    if (!user) return res.status(400).json({ message: "User not found" });
+
+    // Set the favourite array to an empty array
+    user.favourite = [];
+    
+    // Save the user document to update the database
+    await user.save();
+
+    res.status(200).json({ message: "User favourites deleted successfully" });
+}
