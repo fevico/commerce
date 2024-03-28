@@ -16,6 +16,8 @@ router.post("/payment", function (req, res) {
     metadata,
   });
 
+  // console.log(params);
+
   const options = {
     hostname: "api.paystack.co",
     port: 443,
@@ -106,7 +108,7 @@ router.get("/verify", async function (req, res) { // Corrected function async sy
             currency,
             mobile: paymentData.phone,
             address: paymentData.address,
-            totalPrice: paymentData.totalPrice,
+            total: paymentData.totalPrice,
             cart: paymentData.cart,
             transactionId: paymentData.transactionId, // Corrected property name
             status
