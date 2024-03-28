@@ -55,8 +55,8 @@ export const isAdmin: RequestHandler = async (req, res, next) =>{
     if(role !== "admin"){
         return res.status(403).json({error: "Unauthorized request!"})
     }
-    req.user = {
-        id: payload.userId,
+    req.user = { 
+        id: payload.userId, 
         role: role
     }
 

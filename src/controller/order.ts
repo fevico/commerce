@@ -1,6 +1,8 @@
 import { RequestHandler } from "express";
 import Order from "#/model/order";
 import User from "#/model/user";
+import Shipping from "#/model/shipping";
+import { isValidObjectId } from "mongoose";
 
 // export const createOrder: RequestHandler = async (req, res) => {
 //     const userId = req.user.id;
@@ -96,15 +98,64 @@ export const getOrderById: RequestHandler = async (req, res) => {
     }
 };
 
-
 export const confirmedOrderStatus: RequestHandler = async (req, res) => {
-    const orderId = req.params;
-    const order = await Order.findOne({orderId})
-    if(order?.orderStatus === "pending") {
-        order.orderStatus = "confirmed"
+    const orderId = req.params.orderId; // Correctly accessing orderId from req.params
+    const order = await Order.findById(orderId); // Using orderId directly in findById
+    if (!order) return res.status(400).json({ message: "Cannot find order document!" });
+
+    const shipping = await Shipping.findOne({ orderId }); // Using orderId to find shipping
+
+    if (!shipping) return res.status(400).json({ message: "Cannot find shipping document!" });
+
+    if (order.orderStatus === "pending") {
+        order.orderStatus = "processing";
+    }else{
+        return res.status(400).json({message: "Order already confirmed!"})
     }
-    await order?.save();
-    res.json({order})
+
+    if (shipping.status === "pending") {
+        shipping.status = "shipped";
+    }else{
+        return res.status(400).json({message: "Order already shipped!"})
+    }
+
+    await order.save();
+    await shipping.save();
+
+    res.json({ message: "Order confirmed and shipped successfully!" }); 
+};
+
+export const totalNumberOfOrders: RequestHandler = async (req, res) => {
+    try {
+        const totalOrders = await Order.countDocuments();
+        res.json({ totalOrders });
+    } catch (error) {
+        console.error("Error fetching total number of orders:", error);
+        res.status(500).json({ message: "An error occurred while fetching total number of orders" });
+    }
+}
+ 
+export const totalNumberOfConfirmedOrders: RequestHandler = async (req, res) =>{
+    const totalConfirmedOrders = await Order.countDocuments({orderStatus: "confirmed"})
+    res.json({totalConfirmedOrders});
+}
+
+export const totalNumberOfShippedOrders: RequestHandler = async (req, res) =>{
+    const numberOfShippedOrders = await Shipping.countDocuments({status: "shipped"});
+    res.json({numberOfShippedOrders});
+}
+
+export const totalNumberOfPendingOrders: RequestHandler = async (req, res) =>{
+    const userId = req.user.id;
+    const user = await User.findOne({_id: userId});
+    if(!user) return res.status(403).json({message: "Access denied!"});
+    const numberOfPendingOrders = await Order.countDocuments({orderStatus: "pending"})
+    res.json({numberOfPendingOrders});
+}
+
+export const totalNumberOfProcessingOrders: RequestHandler = async (req, res) => {
+    const totalProcessing = await Order.countDocuments({orderStatus: "processing"});
+    res.json({totalProcessing});
 }
 
 // export const cancellOrderStatus: RequestHandler = async (req, res) =>{

@@ -153,3 +153,8 @@ export const deleteUserFavourite: RequestHandler = async (req, res) => {
 
     res.status(200).json({ message: "User favourites deleted successfully" });
 }
+
+export const totalNumberOfProducts: RequestHandler = async (req, res) =>{
+  const totalProducts = await Product.countDocuments();
+  res.json({totalProducts})
+}
