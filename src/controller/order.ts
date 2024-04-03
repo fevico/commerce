@@ -2,7 +2,6 @@ import { RequestHandler } from "express";
 import Order from "#/model/order";
 import User from "#/model/user";
 import Shipping from "#/model/shipping";
-import { isValidObjectId } from "mongoose";
 
 // export const createOrder: RequestHandler = async (req, res) => {
 //     const userId = req.user.id;
@@ -158,12 +157,8 @@ export const totalNumberOfProcessingOrders: RequestHandler = async (req, res) =>
     res.json({totalProcessing});
 }
 
-// export const cancellOrderStatus: RequestHandler = async (req, res) =>{
-//     const orderId = req.params;
-//     const order = await Order.findOne({orderId})
-//     if(order?.orderStatus === "pending") {
-//         order.orderStatus = "cancelled"
-//     }
-//     await order?.save();
-//     res.json({order})
-// }
+export const getAllOrders: RequestHandler = async (req, res) =>{
+    const allOrders = await Order.find().sort({createdAt: -1});
+    if(!allOrders) return res.status(400).json({message: "No order fetch"})
+    res.json({allOrders});
+}
