@@ -25,9 +25,9 @@ export interface OrderDocument {
 }
 
 const orderSchema = new Schema<OrderDocument>({
-  _id:{
-    type: Schema.Types.ObjectId
-  },
+  // _id:{
+  //   type: Schema.Types.ObjectId
+  // },
   userId: {
     type: Schema.Types.ObjectId,
     ref: "User",
