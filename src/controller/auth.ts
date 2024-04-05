@@ -30,7 +30,7 @@ export const signIn: RequestHandler = async (req, res) => {
     return res.status(403).json({ message: "Email/Password Mismatch!" });
   const token = jwt.sign(
     { userId: user._id, role: user.role, name: user.name, email: user.email },
-    JWT_SECRET
+    JWT_SECRET, { expiresIn: '1d'}
   );
   user.token = token;
   await user.save();

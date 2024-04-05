@@ -84,4 +84,35 @@ export const sendForgetPasswordLink = async (options: Options) =>{
                 },
             ]
           })
-        }
+    }
+    export const productOrderMail = async (name:string, email:string, product: string, quantity: number, image: string, price: number, address: string, transactionId: string) =>{ 
+        const transport = generateMailTransporter()
+        
+        const message = `Dear ${name} we just updated your password. You can now sign in with your new password.`;
+        
+          transport.sendMail({
+            to: email,
+            from: VERIFICATION_EMAIL,
+            subject: "Password Reset Succesfully",
+            html: generateTemplate({
+                title: 'Forget Password',
+                message,
+                logo: "cid:logo",
+                banner: "cid:forget_password",
+                link: SIGN_IN_URL,
+                btnTitle: "Login" 
+            }),
+            attachments: [
+                {
+                    filename: "logo.png",
+                    path: path.join(__dirname, "../mail/logo.png"),
+                    cid: "logo"
+                },
+                {
+                    filename: "forget_password.png",
+                    path: path.join(__dirname, "../mail/forget_password.png"),
+                    cid: "forget_password"
+                },
+            ]
+          })
+    }

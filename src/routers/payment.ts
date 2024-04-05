@@ -1,6 +1,7 @@
 // @ts-nocheck
 import Order from "#/model/order";
 import Shipping from "#/model/shipping";
+import { productOrderMail } from "#/utils/mail";
 import Router, { response } from "express";
 
 const router = Router();
@@ -125,6 +126,9 @@ router.get("/verify", async function (req, res) { // Corrected function async sy
           });
 
           await shipping.save();
+
+        productOrderMail({name: paymentData.name, email: paymentData.email, product: metadata.cart.name, quantity: metadata.cart.quantity,
+        image:metadata.cart.image, price: paymentData.totalPrice, address: paymentData.address, transactionId: paymentData.transactionId })
 
           res.send(data);
         }
