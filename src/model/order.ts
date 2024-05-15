@@ -21,7 +21,7 @@ export interface OrderDocument {
   total: number;
   address: String;
   mobile: string;
-  orderStatus: "pending" | "processing" | "confirmed";
+  orderStatus: "pending" | "shipped" | "completed";
 }
 
 const orderSchema = new Schema<OrderDocument>({

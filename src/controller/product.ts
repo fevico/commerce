@@ -159,13 +159,13 @@ export const totalNumberOfProducts: RequestHandler = async (req, res) =>{
   res.json({totalProducts})
 }
 
-export const topSelling: RequestHandler = async (req, res) =>{
-  const {productId} = req.body
-  const product = await Product.findById(productId)
-  if(!product) return res.status(422).json({message: "Cannot display product!"})
-    const order = await Order.cart.findOne({productId: id})
-  if(!order) return res.status(422).json({message: "Cannot display product!"})
-    if(order){
-      await product.quantity - order.cart.quantity
-    }
-}
+// export const topSelling: RequestHandler = async (req, res) =>{
+//   const {productId} = req.body
+//   const product = await Product.findById(productId)
+//   if(!product) return res.status(422).json({message: "Cannot display product!"})
+//     const order = await Order.cart.findOne({productId: id})
+//   if(!order) return res.status(422).json({message: "Cannot display product!"})
+//     if(order){
+//       await product.quantity - order.cart.quantity
+//     }
+// }

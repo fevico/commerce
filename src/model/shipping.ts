@@ -7,7 +7,7 @@ interface Shipping{
     address: string;
     phone: string;
     orderId: ObjectId;
-    status: "pending" | "shipped" | "delivered";
+    status: "pending" | "shipped" | "completed";
 }
 
 const shippingSchema = new Schema<Shipping>({

@@ -104,30 +104,28 @@ export const getOrderById: RequestHandler = async (req, res) => {
 };
 
 export const confirmedOrderStatus: RequestHandler = async (req, res) => {
-    const orderId = req.params.orderId; // Correctly accessing orderId from req.params
-    const order = await Order.findById(orderId); // Using orderId directly in findById
+    const orderId = req.params.orderId;
+    const order = await Order.findById(orderId);
     if (!order) return res.status(400).json({ message: "Cannot find order document!" });
 
-    const shipping = await Shipping.findOne({ orderId }); // Using orderId to find shipping
-
+    const shipping = await Shipping.findOne({ orderId });
     if (!shipping) return res.status(400).json({ message: "Cannot find shipping document!" });
 
     if (order.orderStatus === "pending") {
         order.orderStatus = "shipped";
-    }else if(order.orderStatus === 'shipped'){
-        order.orderStatus = 'completed'
-    }
-    else{
-        return res.status(400).json({message: "Order already completed!"})
+    } else if (order.orderStatus === 'shipped') {
+        order.orderStatus = 'completed';
+    } else {
+        return res.status(400).json({ message: "Order already completed!" });
     }
 
-    if (shipping.status === "pending") {
-        shipping.status = "shipped";
-    }else if(shipped.status === 'shipped'){
-        shipping.status = 'completed'
-    }
-    else{
-        return res.status(400).json({message: "Order already shipped!"})
+    // Update shipping status directly based on order status
+    if (order.orderStatus === 'shipped') {
+        shipping.status = 'shipped';
+    } else if (order.orderStatus === 'completed') {
+        shipping.status = 'completed';
+    } else {
+        return res.status(400).json({ message: "Order already shipped!" });
     }
 
     await order.save();
@@ -135,6 +133,7 @@ export const confirmedOrderStatus: RequestHandler = async (req, res) => {
 
     res.json({ message: "Order confirmed and shipped successfully!" }); 
 };
+
 
 export const totalNumberOfOrders: RequestHandler = async (req, res) => {
     try {
