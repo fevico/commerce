@@ -176,17 +176,17 @@ export const totalNumberOfProcessingOrders: RequestHandler = async (req, res) =>
     res.json({allOrders});
 }
 
-export const confirmOrderByuser: RequestHandler = async (req, res) =>{
-    const userId = req.user.id
-    const orderId = req.params.order
-    const userOrder = await Order.find(userId)
-    if(!userOrder) return status(422).json({message: "No order record for this user!"});
-    const order = await Order.findById(orderId) 
-    if(order.status === "shipped"){
-        order.status = "completed"
-    }else{
-        return res.status(422).json({message: "Order still pending cannot confirm order!"})
-    }
-    order.save()
-    res.json({message: "user order confirmed succesfully!"})
-}
+// export const confirmOrderByuser: RequestHandler = async (req, res) =>{
+//     const userId = req.user.id
+//     const orderId = req.params.order
+//     const userOrder = await Order.find(userId)
+//     if(!userOrder) return status(422).json({message: "No order record for this user!"});
+//     const order = await Order.findById(orderId) 
+//     if(order.status === "shipped"){
+//         order.status = "completed"
+//     }else{
+//         return res.status(422).json({message: "Order still pending cannot confirm order!"})
+//     }
+//     order.save()
+//     res.json({message: "user order confirmed succesfully!"})
+// }
