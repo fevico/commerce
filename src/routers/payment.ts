@@ -130,6 +130,23 @@ router.get("/verify", async function (req, res) { // Corrected function async sy
         productOrderMail({name: paymentData.name, email: paymentData.email, product: metadata.cart.name, quantity: metadata.cart.quantity,
         image:metadata.cart.image, price: paymentData.totalPrice, address: paymentData.address, transactionId: paymentData.transactionId })
 
+// Find the product based on some criteria (e.g., product ID)
+const prductId = metadata.cart.id
+const product = await Product.findById(productId);
+
+if (!product) {
+  return res.status(422).json({message: "Cannot display product!"})
+} else {
+  // Update the quantity of the product
+  product.quantity -= metadata.cart.quantity;
+
+  // Update the top selling field of the product
+  product.topSelling = Math.max(product.topSelling, metadata.cart.quantity);
+
+  // Save the updated product instance
+  await product.save();
+}
+
           res.send(data);
         }
 
