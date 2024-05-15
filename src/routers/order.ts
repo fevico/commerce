@@ -1,4 +1,4 @@
-import {  confirmedOrderStatus, getAllOrders, getAllUserOrders, getOrderById, totalNumberOfConfirmedOrders, totalNumberOfOrders, totalNumberOfPendingOrders, totalNumberOfProcessingOrders, totalNumberOfShippedOrders } from "#/controller/order";
+import {  confirmedOrderStatus, getAllOrders, getUserOrder, confirmOrderByuser, getAllUserOrders, getOrderById, totalNumberOfConfirmedOrders, totalNumberOfOrders, totalNumberOfPendingOrders, totalNumberOfProcessingOrders, totalNumberOfShippedOrders } from "#/controller/order";
 import { isAdmin, mustAuth } from "#/middleware/user";
 import { Router } from "express";
 
@@ -14,5 +14,7 @@ router.get('/total/pending-orders', mustAuth, isAdmin, totalNumberOfPendingOrder
 router.get('/total/orders', mustAuth, isAdmin, totalNumberOfOrders) 
 router.get('/total/processing-orders', mustAuth, isAdmin, totalNumberOfProcessingOrders)
 router.get('/all/orders', isAdmin, getAllOrders); 
+router.get('/userOrder', mustAuth, getAllUserOrders);
+router.post('/:order', mustAuth, confirmOrderByuser);
 
 export default router;  

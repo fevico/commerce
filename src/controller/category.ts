@@ -32,5 +32,5 @@ export const deleteCategory: RequestHandler = async(req, res)=>{
     const {catId} = req.params;
     const category = await Category.findByIdAndDelete(catId);
     if(!category) return res.status(400).json({message: "Something went wrong!"})
-    res.json({message: true});
+    res.json({message: "Category deleted successfully!"});
 }  

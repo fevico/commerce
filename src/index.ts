@@ -28,6 +28,6 @@ app.use('/payment', paymentRouter);
 
 const PORT = 5004;
 
-app.listen(PORT, ()=>{
+app.listen(PORT, '0.0.0.0', ()=>{
     console.log('Port is listening on '+ PORT);
 })

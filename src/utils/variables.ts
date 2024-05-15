@@ -10,4 +10,6 @@ export const {MONGO_URI,
     CLOUD_NAME,
     CLOUD_KEY,
     CLOUD_SECRET,
+    CLIENT_ID,
+    CLIENT_SECRET
     } = env;

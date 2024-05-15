@@ -12,5 +12,4 @@ router.get('/:catId', getCategory);
 router.patch('/:catId', mustAuth, isAdmin, validate(categoryValidation), updateCategory); 
 router.delete('/:catId',mustAuth, isAdmin, deleteCategory);
 
-
 export default router; 

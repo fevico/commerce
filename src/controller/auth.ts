@@ -1,6 +1,6 @@
 // @ts-nocheck
 import User from "#/model/user";
-import { JWT_SECRET, PASSWORD_RESET_LINK } from "#/utils/variables";
+import { CLIENT_ID, CLIENT_SECRET, JWT_SECRET, PASSWORD_RESET_LINK } from "#/utils/variables";
 import { RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import passwordResetToken from "#/model/passwordResetToken";
@@ -9,6 +9,7 @@ import {
   sendForgetPasswordLink,
   sendPassResetSuccessEmail,
 } from "#/utils/mail";
+import { OAuth2Client } from "google-auth-library";
 
 export const createUser: RequestHandler = async (req, res) => {
   const { email, name, password } = req.body;
@@ -120,4 +121,22 @@ export const getTotalUsers: RequestHandler = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const googleSignUp: RequestHandler = async (req, res)=>{
+  res.header('Acess-Control-Allow-Origin', 'http://localhost:5173');
+  res.header('Referrer-Policy', 'no-referrer-when-downgrade');
+
+  const redirectUrl = 'http://127.0.0.1:9090/oauth';
+
+  const OAuthClient = new OAuth2Client(
+    CLIENT_SECRET, CLIENT_ID, redirectUrl
+  )
+
+  const authorizeUrl = OAuthClient.generateAuthUrl({
+    access_type: 'offline',
+    scope: 'https://www.googleapis.com/auth/userinfo.profile openid',
+    prompt: 'consent'
+  });
+  res.json({url: authorizeUrl})
+}
 

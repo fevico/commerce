@@ -11,46 +11,52 @@ import Shipping from "#/model/shipping";
 // }
 
 
-export const getAllUserOrders: RequestHandler = async (req, res) => {
-    const userId = req.user.id;
-    const user = await User.findOne({_id: userId});
-    if(!user) return res.status(403).json({message: "Access denied!"})
-
+ export const getAllUserOrders: RequestHandler = async (req, res) => {
     try {
-        const orders = await Order.aggregate([
-            { $match: { userId: userId } }, // Filter orders by userId
-            {
-                $lookup: {
-                    from: 'products', // Name of the product collection
-                    localField: 'productId', // Field from the Order collection
-                    foreignField: '_id', // Field from the Product collection
-                    as: 'product' // Output array field containing the product details
-                }
-            },
-            { $unwind: '$product' }, // Unwind the product array to get individual product details
-            {
-                $project: {
-                    _id: 0, // Exclude _id field
-                    orderId: '$_id', // Rename _id field to orderId
-                    productName: '$product.name',
-                    productPrice: '$product.price',
-                    productImage: '$product.image',
-                    productQty: '$quantity',
-                    address: '$address', // Include address field from Order collection
-                    phone: '$phone' // Include phone field from Order collection
-                    // Add more fields as needed
-                }
-            }
-        ]);
-
-        if (!orders) {
-            return res.status(404).json({ message: "No orders found for the user" });
-        }
-
+        const userId = req.user.id;
+        const orders = await Order.find({ userId: userId });
         res.json({ orders });
-    } catch (error) {
-        res.status(500).json({ message: "An error occurred while fetching user orders" });
-    }
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+        res.status(500).json({ message: "Failed to fetch orders" });
+      }
+      
+
+    // try {
+    //     const orders = await Order.aggregate([
+    //         { $match: { userId: userId } }, // Filter orders by userId
+    //         {
+    //             $lookup: {
+    //                 from: 'products', // Name of the product collection
+    //                 localField: 'orderId', // Field from the Order collection
+    //                 foreignField: '_id', // Field from the Product collection
+    //                 as: 'order' // Output array field containing the product details
+    //             }
+    //         },
+    //         { $unwind: '$order' }, // Unwind the product array to get individual product details
+    //         {
+    //             $project: {
+    //                 _id: 0, // Exclude _id field
+    //                 orderId: '$_id', // Rename _id field to orderId
+    //                 productName: '$order.name',
+    //                 productPrice: '$product.price',
+    //                 productImage: '$product.image',
+    //                 productQty: '$quantity',
+    //                 address: '$address', // Include address field from Order collection
+    //                 phone: '$phone' // Include phone field from Order collection
+    //                 // Add more fields as needed
+    //             }
+    //         }
+    //     ]);
+
+    //     if (!orders) {
+    //         return res.status(404).json({ message: "No orders found for the user" });
+    //     }
+
+    //     res.json({ orders });
+    // } catch (error) {
+    //     res.status(500).json({ message: "An error occurred while fetching user orders" });
+    // }
 };
 
 export const getOrderById: RequestHandler = async (req, res) => {
@@ -107,14 +113,20 @@ export const confirmedOrderStatus: RequestHandler = async (req, res) => {
     if (!shipping) return res.status(400).json({ message: "Cannot find shipping document!" });
 
     if (order.orderStatus === "pending") {
-        order.orderStatus = "processing";
-    }else{
-        return res.status(400).json({message: "Order already confirmed!"})
+        order.orderStatus = "shipped";
+    }else if(order.orderStatus === 'shipped'){
+        order.orderStatus = 'completed'
+    }
+    else{
+        return res.status(400).json({message: "Order already completed!"})
     }
 
     if (shipping.status === "pending") {
         shipping.status = "shipped";
-    }else{
+    }else if(shipped.status === 'shipped'){
+        shipping.status = 'completed'
+    }
+    else{
         return res.status(400).json({message: "Order already shipped!"})
     }
 
@@ -157,8 +169,23 @@ export const totalNumberOfProcessingOrders: RequestHandler = async (req, res) =>
     res.json({totalProcessing});
 }
 
-export const getAllOrders: RequestHandler = async (req, res) =>{
+ export const getAllOrders: RequestHandler = async (req, res) =>{
     const allOrders = await Order.find().sort({createdAt: -1});
     if(!allOrders) return res.status(400).json({message: "No order fetch"})
     res.json({allOrders});
+}
+
+export const confirmOrderByuser: RequestHandler = async (req, res) =>{
+    const userId = req.user.id
+    const orderId = req.params.order
+    const userOrder = await Order.find(userId)
+    if(!userOrder) return status(422).json({message: "No order record for this user!"});
+    const order = await Order.findById(orderId) 
+    if(order.status === "processing"){
+        order.status = "confirmed"
+    }else{
+        return res.status(422).json({message: "Order still pending cannot confirm order!"})
+    }
+    order.save()
+    res.json({message: "user order confirmed succesfully!"})
 }
