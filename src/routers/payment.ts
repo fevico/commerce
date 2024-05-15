@@ -142,6 +142,9 @@ if (!product) {
 
   // Update the top selling field of the product
   product.topSelling = Math.max(product.topSelling, metadata.cart.quantity);
+  if(product.quantity === 0){
+    product.inStock = false
+  }
 
   // Save the updated product instance
   await product.save();

@@ -11,6 +11,7 @@ interface ProductDocument{
     topSelling: number;
     featured: "yes" | "no";
     discount: number;
+    inStock: boolean
 }
 
 const productSchema = new Schema<ProductDocument>({
@@ -51,6 +52,10 @@ const productSchema = new Schema<ProductDocument>({
         type: Number,
         default: 0
     },
+    inStock:{
+        type: Boolean,
+        default: true
+    }
 }, {timestamps: true});
 
 export default model("Product", productSchema) as Model<ProductDocument>;

@@ -113,23 +113,25 @@ export const confirmedOrderStatus: RequestHandler = async (req, res) => {
 
     if (order.orderStatus === "pending") {
         order.orderStatus = "shipped";
+        shipping.status = 'shipped';
     } else if (order.orderStatus === 'shipped') {
         order.orderStatus = 'completed';
+        shipping.status = 'completed';
     } else {
         return res.status(400).json({ message: "Order already completed!" });
     }
 
-    // Update shipping status directly based on order status
-    if (order.orderStatus === 'shipped') {
-        shipping.status = 'shipped';
-    } else if (order.orderStatus === 'completed') {
-        shipping.status = 'completed';
-    } else {
-        return res.status(400).json({ message: "Order already shipped!" });
-    }
+    // // Update shipping status directly based on order status
+    // if (shipping.status === 'pending') {
+    //     shipping.status = 'shipped';
+    // } else if (shipping.status === 'shipped') {
+    //     shipping.status = 'completed';
+    // } else {
+    //     return res.status(400).json({ message: "Order already shipped!" });
+    // }
 
     await order.save();
-    await shipping.save();
+    // await shipping.save();
 
     res.json({ message: "Order confirmed and shipped successfully!" }); 
 };
@@ -180,8 +182,8 @@ export const confirmOrderByuser: RequestHandler = async (req, res) =>{
     const userOrder = await Order.find(userId)
     if(!userOrder) return status(422).json({message: "No order record for this user!"});
     const order = await Order.findById(orderId) 
-    if(order.status === "processing"){
-        order.status = "confirmed"
+    if(order.status === "shipped"){
+        order.status = "completed"
     }else{
         return res.status(422).json({message: "Order still pending cannot confirm order!"})
     }
