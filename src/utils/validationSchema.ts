@@ -6,7 +6,7 @@ export const productValidation = yup.object().shape({
     price:yup.number().required("Product price is required"),
     description:yup.string().required("Product description is required"),
     categoryId:yup.string().required("Product category is required"),
-    image: yup.string(),
+    image: yup.string().required("Product image is required"),
     quantity: yup.number(),
 })
 
