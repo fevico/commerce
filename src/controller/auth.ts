@@ -140,3 +140,8 @@ export const googleSignUp: RequestHandler = async (req, res)=>{
   res.json({url: authorizeUrl})
 }
 
+export const getAllUsers: RequestHandler = async(req, res) =>{
+  const user = await User.find()
+  if(!user) return res.json(422).json({message: "No record found!"})
+    res.json({user})
+}

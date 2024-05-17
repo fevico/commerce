@@ -13,5 +13,6 @@ router.post('/verify-password-link', validate(TokenAndIDValidation), isValidPass
 router.post('/update-password', validate(UpdatePasswordSchema), updatePassword)
 router.patch('/update-profile', mustAuth, updateProfile)
 router.get('/total-user', mustAuth, getTotalUsers)
+router.get('/all-user', mustAuth, isAdmin, getAllUsers)
 
 export default router;
