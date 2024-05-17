@@ -49,3 +49,8 @@ export const SignInValidationSchema = yup.object().shape({
     password: yup.string().trim().required("Password is missing!")
 });
 
+export const blogValidationSchema = yup.object().shape({
+    title: yup.string().required("Title is required!"),
+    description: yup.string().required("Description is missing!")
+});
+

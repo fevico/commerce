@@ -2,10 +2,12 @@ import express from 'express';
 import 'dotenv/config'
 import './db'
 import cors from 'cors'
+import "express-async-errors"
 import categoryRouter from './routers/category'
 import productRouter from './routers/product'
 import authRouter from './routers/auth'
 import orderRouter from './routers/order'
+import blogRouter from './routers/blog'
 import paymentRouter from './routers/payment';
 
 const app = express();
@@ -25,6 +27,11 @@ app.use('/product', productRouter);
 app.use('/auth', authRouter);
 app.use('/order', orderRouter);
 app.use('/payment', paymentRouter);
+app.use('/blog', blogRouter);
+
+app.use(function (err, req, res, next){
+  res.status(500).json({message: err.message})
+} as express.ErrorRequestHandler)
 
 const PORT = 5004;
 
