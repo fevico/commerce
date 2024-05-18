@@ -9,6 +9,7 @@ import authRouter from './routers/auth'
 import orderRouter from './routers/order'
 import blogRouter from './routers/blog'
 import paymentRouter from './routers/payment';
+import brandRouter from './routers/brand';
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use('/auth', authRouter);
 app.use('/order', orderRouter);
 app.use('/payment', paymentRouter);
 app.use('/blog', blogRouter);
+app.use('/brand', brandRouter)
 
 app.use(function (err, req, res, next){
   res.status(500).json({message: err.message})

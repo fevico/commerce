@@ -1,5 +1,5 @@
-import { createUser, generateForgetPasswordLink, getTotalUsers, isValidPasswordReset, signIn, updatePassword, updateProfile } from "#/controller/auth";
-import { isValidPasswordResetToken, mustAuth } from "#/middleware/user";
+import { createUser, generateForgetPasswordLink, getAllUsers, getTotalUsers, isValidPasswordReset, signIn, updatePassword, updateProfile } from "#/controller/auth";
+import { isAdmin, isValidPasswordResetToken, mustAuth } from "#/middleware/user";
 import { validate } from "#/middleware/validator";
 import { SignInValidationSchema, TokenAndIDValidation, UpdatePasswordSchema, userValidation } from "#/utils/validationSchema";
 import { Router } from "express";
