@@ -4,6 +4,7 @@ interface ProductDocument{
     _id: Types.ObjectId;
     name: string;
     categoryId: Types.ObjectId;
+    brandId: Types.ObjectId;
     image: string;
     price: number;
     quantity: number;
@@ -24,6 +25,10 @@ const productSchema = new Schema<ProductDocument>({
         ref: "Category",
         required: true,
     },
+    brandId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Brand',
+      },
     image: {
         type: String,
         required: true,

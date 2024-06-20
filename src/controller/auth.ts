@@ -104,9 +104,9 @@ export const updatePassword: RequestHandler = async (req, res) => {
 };
 
 export const updateProfile: RequestHandler = async (req, res) => {
-  const { address, phone } = req.body;
+  const { address, phone, name } = req.body;
   const userId = req.user.id;
-  const user = await User.findByIdAndUpdate(userId, { address, phone });
+  const user = await User.findByIdAndUpdate(userId, { address, phone, name });
   if (!user) return res.status(403).json({ error: "Unauthorized request!" });
   res.json({ message: "Profile updated sucessfully!" });
 };
@@ -140,8 +140,24 @@ export const googleSignUp: RequestHandler = async (req, res)=>{
   res.json({url: authorizeUrl})
 }
 
-export const getAllUsers: RequestHandler = async(req, res) =>{
-  const user = await User.find()
-  if(!user) return res.json(422).json({message: "No record found!"})
-    res.json({user})
-}
+
+export const getAllUsers: RequestHandler = async (req, res) => {
+  try {
+    const users = await User.find({ role: { $ne: 'admin' } }).select('-password -favourite -token'); 
+    
+    if (users.length === 0) {
+      return res.status(404).json({ message: 'No non-admin users found' });
+    }
+
+    res.json({ users });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+export const sendProfile: RequestHandler = async (req, res) => {
+  res.json({
+    profile: req.user,
+  });
+};
