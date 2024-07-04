@@ -127,6 +127,10 @@ router.get("/verify", async function (req, res) { // Corrected function async sy
 
           await shipping.save();
 
+          const productList = paymentData.cart.map(item => {
+            return `Product: ${item.name}, Price: ${item.totalPrice} Quantity: ${item.quantity}`;
+          })
+
         productOrderMail({name: paymentData.name, email: paymentData.email, product: metadata.cart.name, quantity: metadata.cart.quantity,
         image:metadata.cart.image, price: paymentData.totalPrice, address: paymentData.address, transactionId: paymentData.transactionId })
 
