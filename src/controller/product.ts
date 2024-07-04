@@ -67,84 +67,89 @@ import { isValidObjectId } from "mongoose";
 //   }
 // };
 
+// export const getAllProducts: RequestHandler = async (req, res) => {
+//   const { search } = req.query; // Get the search query from request parameters
+//   let query = {}; // Initialize the query object
+
+//   // If search query is provided and it's a string, construct the search criteria
+//   if (typeof search === "string") {
+//     const regex = new RegExp(search, "i"); // Case-insensitive regex pattern
+//     query = {
+//       $or: [
+//         { name: { $regex: regex } }, // Search by name
+//         { category: { $regex: regex } }, // Search by category
+//         { category: { $regex: regex } }, // Search by category
+//         { brand: { $regex: regex } }, // Search by brand
+//       ],
+//     };
+//   }
+
+//   const products = await Product.find();
+//   if (!products || products.length === 0) {
+//     return res.status(404).json({ error: "No products found!" });
+//   }
+
+//   const result = await Product.aggregate([
+//     // {
+//     //   $match: {
+//     //     _id: { $in: products.map((p) => p._id) },
+//     //   },
+//     // },
+//     {
+//       $lookup: {
+//         from: "categories",
+//         localField: "categoryId",
+//         foreignField: "_id",
+//         as: "categoryDetails",
+//       },
+//     },
+//     { $unwind: "$categoryDetails" },
+
+//     {
+//       $lookup: {
+//         from: "brands",
+//         localField: "brandId",
+//         foreignField: "_id",
+//         as: "brandDetails",
+//       },
+//     },
+//     { $unwind: "$brandDetails" },
+//     {
+//       $replaceRoot: {
+//         newRoot: {
+//           _id: "$_id",
+//           name: "$name",
+//           description: "$description",
+//           category: "$categoryDetails.name",
+//           brand: "$brandDetails.name",
+//           price: "$price",
+//           image: "$image",
+//           status: "$status",
+//         },
+//       },
+//     },
+//   ]);
+
+//   const structuredResponse = {
+//     products: result.map((product) => ({
+//       id: product._id,
+//       name: product.name,
+//       description: product.description,
+//       category: product.category,
+//       brand: product.brand,
+//       price: product.price,
+//       image: product.image,
+//       status: product.status,
+//     })),
+//   };
+
+//   res.status(200).json(structuredResponse);
+// };
+
 export const getAllProducts: RequestHandler = async (req, res) => {
-  const { search } = req.query; // Get the search query from request parameters
-  let query = {}; // Initialize the query object
-
-  // If search query is provided and it's a string, construct the search criteria
-  if (typeof search === "string") {
-    const regex = new RegExp(search, "i"); // Case-insensitive regex pattern
-    query = {
-      $or: [
-        { name: { $regex: regex } }, // Search by name
-        { category: { $regex: regex } }, // Search by category
-        { category: { $regex: regex } }, // Search by category
-        { brand: { $regex: regex } }, // Search by brand
-      ],
-    };
-  }
-
-  const products = await Product.find();
-  if (!products || products.length === 0) {
-    return res.status(404).json({ error: "No products found!" });
-  }
-
-  const result = await Product.aggregate([
-    // {
-    //   $match: {
-    //     _id: { $in: products.map((p) => p._id) },
-    //   },
-    // },
-    {
-      $lookup: {
-        from: "categories",
-        localField: "categoryId",
-        foreignField: "_id",
-        as: "categoryDetails",
-      },
-    },
-    { $unwind: "$categoryDetails" },
-
-    {
-      $lookup: {
-        from: "brands",
-        localField: "brandId",
-        foreignField: "_id",
-        as: "brandDetails",
-      },
-    },
-    { $unwind: "$brandDetails" },
-    {
-      $replaceRoot: {
-        newRoot: {
-          _id: "$_id",
-          name: "$name",
-          description: "$description",
-          category: "$categoryDetails.name",
-          brand: "$brandDetails.name",
-          price: "$price",
-          image: "$image",
-          status: "$status",
-        },
-      },
-    },
-  ]);
-
-  const structuredResponse = {
-    products: result.map((product) => ({
-      id: product._id,
-      name: product.name,
-      description: product.description,
-      category: product.category,
-      brand: product.brand,
-      price: product.price,
-      image: product.image,
-      status: product.status,
-    })),
-  };
-
-  res.status(200).json(structuredResponse);
-};
+  const products = await Product.find().populate("categoryId").populate("brandId");
+  res.json({ products });
+}
 
 export const getProductById: RequestHandler = async (req, res) => {
   const { productId } = req.params;
