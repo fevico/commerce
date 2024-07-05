@@ -13,7 +13,7 @@ router.post("/payment", function (req, res) {
   const params = JSON.stringify({
     email,
     amount,
-    callback_url: "https://ekomas-react-new.vercel.app/",
+    callback_url: "https://yoamart.com/",
     metadata,
   });
 
