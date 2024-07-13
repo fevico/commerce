@@ -25,6 +25,7 @@ const userSchema = new Schema<UserDocument, Model<UserDocument>, UserMethods>({
     email: {
         type: String,
         required: true,
+        unique: true,
     },
     password: {
         type: String,
