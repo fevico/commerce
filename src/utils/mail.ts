@@ -33,13 +33,18 @@ const clientConfig: MailtrapClientConfig = {
 const client = new MailtrapClient(clientConfig);
 
 interface Options{
-    email: string;
-    link: string;
-  }
+  email: string;
+  link: string;
+}
+
+interface MailtrapClientConfig {
+endpoint: string;
+token: string;
+}
 
 export const sendForgetPasswordLink = async (options: Options) =>{ 
     // const transport = generateMailTransporter()
-    const { email, link } = options
+    const {email, link} = options
 
     const message = "We just recived a request that you forget your password. No problem you can use the link below and create brand new password.";
 
@@ -132,47 +137,96 @@ export const sendForgetPasswordLink = async (options: Options) =>{
         email: email,
       }
     ];
-
         client
         .send({
-          from: sender,
-          to: recipients,
-          template_uuid: "07cefe6d-f0a9-47bd-8f25-8ae97c459de3",
-          template_variables: {
-            "user_name": name,
-            "user_email": email,
-          }
-        })
+    from: sender,
+    to: recipients,
+    template_uuid: "3f8c9528-2a56-49b6-abcf-a82005370089",
+    template_variables: {
+      "user_name": name,
+    }
+  })
 
     }
-    export const productOrderMail = async (name:string, email:string, product: string, quantity: number, image: string, price: number, address: string, transactionId: string) =>{ 
-        const transport = generateMailTransporter()
+
+
+    export const productOrderMail = async (name:string, email:string, product: string, quantity: number, price: number, address: string, transactionId: string) =>{ 
+
+      const ORDER_EMAIL = process.env.ORDER_EMAIL as string
+      
+        // const client = new MailtrapClient( clientConfig );  
+          const message = `Dear ${name} we just received your order from Yoamaet <br/>
+          product name: ${product} <br/>
+          quantity: ${quantity} <br/>
+          price: ${price} <br/>
+          address: ${address} <br/>
+          transactionId: ${transactionId} <br/>
+          Thank you for your order. We will send you an email when your order is shipped.`;
+
+
+          const sender = {
+            email: ORDER_EMAIL,
+            name: "Yoamart Order", 
+          }; 
         
-        const message = `Dear ${name} we just updated your password. You can now sign in with your new password.`;
-        
-          transport.sendMail({
-            to: email,
-            from: VERIFICATION_EMAIL,
-            subject: "Password Reset Succesfully",
-            html: generateTemplate({
-                title: 'Forget Password',
-                message,
-                logo: "cid:logo",
-                banner: "cid:forget_password",
-                link: SIGN_IN_URL,
-                btnTitle: "Login" 
-            }),
-            attachments: [
-                {
-                    filename: "logo.png",
-                    path: path.join(__dirname, "../mail/logo.png"),
-                    cid: "logo"
-                },
-                {
-                    filename: "forget_password.png",
-                    path: path.join(__dirname, "../mail/forget_password.png"),
-                    cid: "forget_password"
-                },
-            ]
-          })
-    }
+          const recipients = [
+            {
+              email
+            }
+          ];
+          
+         const logoImage = fs.readFileSync(path.join(__dirname, "../mail/logo.png"))
+
+    client
+      .send({
+        from: sender,
+        to: recipients,
+        subject: "Sucessful Order!",
+        html: generateTemplate({
+          title: 'New Order' ,
+          message,
+          logo: "cid:logo",
+        }),
+      attachments:[
+        {
+          filename: "logo.png",
+          content_id: "logo",
+          content: logoImage,
+          disposition: "inline",
+          type: "image/png"
+        }
+      ],
+      category: "Succesful Order",
+    
+      })
+       
+          // const transport = generateMailTransporter()
+            
+          //   const message = `Dear ${name} we just updated your password. You can now sign in with your new password.`;
+            
+          //     transport.sendMail({
+          //       to: email,
+          //       from: VERIFICATION_EMAIL,
+          //       subject: "Password Reset Succesfully",
+          //       html: generateTemplate({
+          //           title: 'Product Order',
+          //           message,
+          //           logo: "cid:logo",
+          //           banner: "cid:forget_password",
+          //           link: SIGN_IN_URL,
+          //           btnTitle: "Login" 
+          //       }),
+          //       attachments: [
+          //           {
+          //               filename: "logo.png",
+          //               path: path.join(__dirname, "../mail/logo.png"),
+          //               cid: "logo"
+          //           },
+          //           {
+          //               filename: "forget_password.png",
+          //               path: path.join(__dirname, "../mail/forget_password.png"),
+          //               cid: "forget_password"
+          //           },
+          //       ]
+          //     })
+        }

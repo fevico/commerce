@@ -131,8 +131,37 @@ router.get("/verify", async function (req, res) { // Corrected function async sy
             return `Product: ${item.name}, Price: ${item.totalPrice} Quantity: ${item.quantity}`;
           })
 
-        productOrderMail({name: paymentData.name, email: paymentData.email, product: metadata.cart.name, quantity: metadata.cart.quantity,
-        image:metadata.cart.image, price: paymentData.totalPrice, address: paymentData.address, transactionId: paymentData.transactionId })
+          const aggregatedProducts = {};
+paymentData.cart.forEach(product => {
+    const productName = product.name;
+    if (aggregatedProducts[productName]) {
+        aggregatedProducts[productName].quantity += product.quantity;
+        aggregatedProducts[productName].totalPrice += product.totalPrice;
+    } else {
+        aggregatedProducts[productName] = {
+            quantity: product.quantity,
+            totalPrice: product.totalPrice
+        };
+    }
+});
+
+// Send email for each product with aggregated data
+Object.keys(aggregatedProducts).forEach(productName => {
+    const product = aggregatedProducts[productName];
+    productOrderMail(
+        paymentData.name,
+        paymentData.email,
+        productName,
+        product.quantity,
+        product.price,
+        paymentData.address,
+        paymentData.transactionId
+    );
+});
+
+
+        // productOrderMail({name: paymentData.name, email: paymentData.email, product: metadata.cart.name, quantity: metadata.cart.quantity,
+        // image:metadata.cart.image, price: paymentData.totalPrice, address: paymentData.address, transactionId: paymentData.transactionId })
 
 // Find the product based on some criteria (e.g., product ID)
 const prductId = metadata.cart.id

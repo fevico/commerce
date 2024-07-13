@@ -1,10 +1,10 @@
 interface Options {
     title: string;
     message: string;
-    link: string;
+    link?: string;
     logo: string;
-    banner: string;
-    btnTitle: string;
+    banner?: string;
+    btnTitle?: string;
   }
   
   export const generateTemplate = (options: Options) => {
