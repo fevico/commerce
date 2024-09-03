@@ -1,5 +1,6 @@
 // @ts-nocheck
 import Order from "#/model/order";
+import Product from "#/model/product";
 import Shipping from "#/model/shipping";
 import { productOrderMail } from "#/utils/mail";
 import Router, { response } from "express";
@@ -13,7 +14,9 @@ router.post("/payment", function (req, res) {
   const params = JSON.stringify({
     email,
     amount,
-    callback_url: "https://yoamart.com/",
+    // callback_url: "https://yoamart.com/",
+    callback_url: "http://localhost:5173/",
+
     metadata,
   });
 
@@ -51,7 +54,7 @@ router.post("/payment", function (req, res) {
   reqPaystack.end();
 });
 
-router.get("/verify", async function (req, res) { // Corrected function async syntax
+router.post("/verify", async function (req, res) { // Corrected function async syntax
   const reference = req.query.reference;
   // console.log(reference);
   const options = {
@@ -111,8 +114,8 @@ router.get("/verify", async function (req, res) { // Corrected function async sy
             address: paymentData.address,
             total: paymentData.totalPrice,
             cart: paymentData.cart,
-            transactionId: paymentData.transactionId, // Corrected property name
-            status
+            transactionId: paymentData.transactionId,
+            status,
           });
 
           await order.save();
@@ -132,58 +135,69 @@ router.get("/verify", async function (req, res) { // Corrected function async sy
           })
 
           const aggregatedProducts = {};
-paymentData.cart.forEach(product => {
-    const productName = product.name;
-    if (aggregatedProducts[productName]) {
-        aggregatedProducts[productName].quantity += product.quantity;
-        aggregatedProducts[productName].totalPrice += product.totalPrice;
-    } else {
-        aggregatedProducts[productName] = {
-            quantity: product.quantity,
-            totalPrice: product.totalPrice
-        };
-    }
-});
+          paymentData.cart.forEach(product => {
+            const productName = product.name;
+            if (aggregatedProducts[productName]) {
+              aggregatedProducts[productName].quantity += product.quantity;
+              aggregatedProducts[productName].totalPrice += product.totalPrice;
+            } else {
+              aggregatedProducts[productName] = {
+                quantity: product.quantity,
+                totalPrice: product.totalPrice
+              };
+            }
+          });
 
-// Send email for each product with aggregated data
-Object.keys(aggregatedProducts).forEach(productName => {
-    const product = aggregatedProducts[productName];
-    productOrderMail(
-        paymentData.name,
-        paymentData.email,
-        productName,
-        product.quantity,
-        product.price,
-        paymentData.address,
-        paymentData.transactionId
-    );
-});
+          // Send email for each product with aggregated data
+          Object.keys(aggregatedProducts).forEach(productName => {
+            const product = aggregatedProducts[productName];
+            productOrderMail(
+              paymentData.name,
+              paymentData.email,
+              productName,
+              product.quantity,
+              product.price,
+              paymentData.address,
+              paymentData.transactionId
+            );
+          });
 
 
-        // productOrderMail({name: paymentData.name, email: paymentData.email, product: metadata.cart.name, quantity: metadata.cart.quantity,
-        // image:metadata.cart.image, price: paymentData.totalPrice, address: paymentData.address, transactionId: paymentData.transactionId })
+          // productOrderMail({name: paymentData.name, email: paymentData.email, product: metadata.cart.name, quantity: metadata.cart.quantity,
+          // image:metadata.cart.image, price: paymentData.totalPrice, address: paymentData.address, transactionId: paymentData.transactionId })
 
-// Find the product based on some criteria (e.g., product ID)
-const prductId = metadata.cart.id
-const product = await Product.findById(productId);
+          // Find the product based on some criteria (e.g., product ID)
+          const cart = metadata.cart;
 
-if (!product) {
-  return res.status(422).json({message: "Cannot display product!"})
-} else {
-  // Update the quantity of the product
-  product.quantity -= metadata.cart.quantity;
+          for (const cartItem of cart) {
+            const productId = cartItem.id;
+            const product = await Product.findById(productId);
 
-  // Update the top selling field of the product
-  product.topSelling = Math.max(product.topSelling, metadata.cart.quantity);
-  if(product.quantity === 0){
-    product.inStock = false
-  }
+            if (!product) {
+              return res.status(422).json({ message: `Cannot display product with ID: ${productId}!` });
+            } else {
+              // Update the quantity of the product
+              const purchaseQuantity = parseInt(cartItem.quantity, 10); // Ensure quantity is a number
+              product.quantity -= purchaseQuantity;
 
-  // Save the updated product instance
-  await product.save();
-}
+              // Update the top selling field of the product
+              product.topSelling = Math.max(product.topSelling, purchaseQuantity);
 
-          res.send(data);
+              // Update the inStock status
+              if (product.quantity <= 0) {
+                product.inStock = false;
+              }
+
+              // Save the updated product instance
+              await product.save();
+            }
+          }
+
+          // After iterating through all products, you can return a success response
+          res.status(200).json({
+            message: "Cart processed successfully!",
+            paymentData: paymentData,
+          });
         }
 
         // console.log(JSON.parse(data));

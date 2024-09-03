@@ -69,7 +69,7 @@ const orderSchema = new Schema<OrderDocument>({
       },
       category: {
         type: String,
-        required: true,
+        required: false,
       },
       image: {
         type: String,

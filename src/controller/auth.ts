@@ -33,6 +33,7 @@ export const signIn: RequestHandler = async (req, res) => {
     { userId: user._id, role: user.role, name: user.name, email: user.email },
     JWT_SECRET, { expiresIn: '1d'}
   );
+  
   user.token = token;
   await user.save();
   res.json({
@@ -122,7 +123,7 @@ export const getTotalUsers: RequestHandler = async (req, res) => {
   }
 };
 
-export const googleSignUp: RequestHandler = async (req, res)=>{
+export const googleSignUp: RequestHandler = async (req, res) => {
   res.header('Acess-Control-Allow-Origin', 'http://localhost:5173');
   res.header('Referrer-Policy', 'no-referrer-when-downgrade');
 
@@ -137,14 +138,14 @@ export const googleSignUp: RequestHandler = async (req, res)=>{
     scope: 'https://www.googleapis.com/auth/userinfo.profile openid',
     prompt: 'consent'
   });
-  res.json({url: authorizeUrl})
+  res.json({ url: authorizeUrl })
 }
 
 
 export const getAllUsers: RequestHandler = async (req, res) => {
   try {
-    const users = await User.find({ role: { $ne: 'admin' } }).select('-password -favourite -token'); 
-    
+    const users = await User.find({ role: { $ne: 'admin' } }).select('-password -favourite -token');
+
     if (users.length === 0) {
       return res.status(404).json({ message: 'No non-admin users found' });
     }
