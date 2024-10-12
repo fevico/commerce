@@ -150,7 +150,7 @@ export const sendForgetPasswordLink = async (options: Options) =>{
     }
 
 
-    export const productOrderMail = async (name:string, email:string, product: string, quantity: number, price: number, address: string, transactionId: string) =>{ 
+    export const productOrderMail = async (name:string, email:string, product: string, quantity: number, price: number, address: string) =>{ 
 
       const ORDER_EMAIL = process.env.ORDER_EMAIL as string
       
@@ -160,7 +160,7 @@ export const sendForgetPasswordLink = async (options: Options) =>{
           quantity: ${quantity} <br/>
           price: ${price} <br/>
           address: ${address} <br/>
-          transactionId: ${transactionId} <br/>
+         
           Thank you for your order. We will send you an email when your order is shipped.`;
 
 
