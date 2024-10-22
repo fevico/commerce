@@ -4,6 +4,7 @@ interface Categories {
     _id: ObjectId;
     name: string;
     image: string;
+    description: string;
 }
 
 const categorySchema = new Schema<Categories>({
@@ -12,6 +13,10 @@ const categorySchema = new Schema<Categories>({
         required: true
     },
     image:{
+        type: String,
+        required: true
+    },
+    description:{
         type: String,
         required: true
     }
