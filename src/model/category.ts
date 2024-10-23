@@ -18,7 +18,7 @@ const categorySchema = new Schema<Categories>({
     },
     description:{
         type: String,
-        required: true
+        required: false
     }
 }, {timestamps: true});
 
