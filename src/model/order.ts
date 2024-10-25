@@ -22,6 +22,8 @@ export interface OrderDocument {
   proofOfPayment: string;
   orderStatus: "pending" | "shipped" | "completed";
   isPaid: boolean;
+  orderNumber: string;
+  orderDate: Date;
 }
 
 const orderSchema = new Schema<OrderDocument>(
@@ -90,6 +92,14 @@ const orderSchema = new Schema<OrderDocument>(
     isPaid: {
       type: Boolean,
       default: false,
+    },
+    orderNumber: {
+      type: String,
+      required: false,
+    },
+    orderDate: {
+      type: Date,
+      required: false,
     },
   },
   { timestamps: true }

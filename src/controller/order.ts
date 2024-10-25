@@ -2,8 +2,9 @@ import { RequestHandler } from "express";
 import Order from "#/model/order";
 import User from "#/model/user";
 import Shipping from "#/model/shipping";
-import { productOrderMail } from "#/utils/mail";
+import { paymentConfirmationEmail, productOrderMail, sendOrderConfirmationEmail } from "#/utils/mail";
 import product from "#/model/product";
+import { generateOrderNumber } from "#/utils/order";
 
 // export const createOrder: RequestHandler = async (req, res) => {
 //     const userId = req.user.id;
@@ -194,9 +195,96 @@ export const getAllOrders: RequestHandler = async (req, res) => {
 // }
 
 
+// export const createOrder: RequestHandler = async (req, res) => {
+//     const userId = req.user.id;
+//     const userName = req.user.name;
+//     const userEmail = req.user.email;
+
+//     try {
+//         const { name, email, phone, address, cart: cartString, totalPrice, proofOfPayment } = req.body;
+
+//         // Parse the stringified cart into a JavaScript object
+//         const cart = JSON.parse(cartString);
+
+//         // Validate the parsed cart
+//         if (!cart || cart.length === 0) {
+//             return res.status(400).json({ message: "Cart is empty!" });
+//         }
+//         const orderNumber = generateOrderNumber(10)
+//        const orderDate = new Date().toISOString().slice(0, 10);
+//         // Create a new order
+//         const order = new Order({
+//             userId,
+//             name,
+//             email,
+//             mobile: phone,
+//             address,
+//             total: totalPrice,
+//             cart,  // Save the parsed cart to the order
+//             proofOfPayment,
+//             orderStatus: "pending",
+//             isPaid: false,
+//             orderNumber,
+//             orderDate
+//         });
+
+//         // Save the order to the database
+//         await order.save();
+
+//         // Create a shipping entry for the order
+//         const shipping = new Shipping({
+//             orderId: order._id,
+//             name,
+//             email,
+//             address,
+//             phone,
+//         });
+//         await shipping.save();
+
+//         // Update product stock and top selling products
+//         for (const cartItem of cart) {
+//             const productId = cartItem.id;
+//             const productExist = await product.findById(productId);
+
+//             if (!productExist) {
+//                 return res.status(422).json({ message: `Product with ID: ${productId} not found` });
+//             }
+
+//             // Decrease product quantity and update top selling field
+//             const purchaseQuantity = parseInt(cartItem.quantity, 10); // Ensure quantity is a number
+//             productExist.quantity -= purchaseQuantity;
+//             productExist.topSelling = Math.max(productExist.topSelling, purchaseQuantity);
+
+//             // Mark the product as out of stock if needed
+//             if (productExist.quantity <= 0) {
+//                 productExist.inStock = false;
+//             }
+
+//             // Save the updated product
+//             await productExist.save();
+//         }
+//             const products = cart.map((item: any) => item.id);
+//         // Send order confirmation email
+//         await sendOrderConfirmationEmail(userName, userEmail, orderNumber, orderDate,  );
+
+//         res.status(201).json({
+//             message: "Order created successfully!",
+//             orderId: order._id,
+//             order,
+//         });
+//     } catch (error) {
+//         console.error("Error creating order:", error);
+//         res.status(500).json({ message: "Failed to create order" });
+//     }
+// };
+
 export const createOrder: RequestHandler = async (req, res) => {
+    const userId = req.user.id;
+    const userName = req.user.name;
+    const userEmail = req.user.email;
+
     try {
-        const { userId, name, email, phone, address, cart: cartString, totalPrice, proofOfPayment } = req.body;
+        const { name, email, phone, address, cart: cartString, totalPrice, proofOfPayment } = req.body;
 
         // Parse the stringified cart into a JavaScript object
         const cart = JSON.parse(cartString);
@@ -205,6 +293,9 @@ export const createOrder: RequestHandler = async (req, res) => {
         if (!cart || cart.length === 0) {
             return res.status(400).json({ message: "Cart is empty!" });
         }
+        
+        const orderNumber = generateOrderNumber(10);
+        const orderDate = new Date().toISOString().slice(0, 10);
 
         // Create a new order
         const order = new Order({
@@ -218,6 +309,8 @@ export const createOrder: RequestHandler = async (req, res) => {
             proofOfPayment,
             orderStatus: "pending",
             isPaid: false,
+            orderNumber,
+            orderDate
         });
 
         // Save the order to the database
@@ -233,7 +326,8 @@ export const createOrder: RequestHandler = async (req, res) => {
         });
         await shipping.save();
 
-        // Update product stock and top selling products
+        // Prepare product names and quantities for the email
+        let productList = '';
         for (const cartItem of cart) {
             const productId = cartItem.id;
             const productExist = await product.findById(productId);
@@ -254,34 +348,21 @@ export const createOrder: RequestHandler = async (req, res) => {
 
             // Save the updated product
             await productExist.save();
+
+            // Append product name and quantity to the list for the email
+            productList += `Product: ${productExist.name}, Quantity: ${purchaseQuantity}\n`;
         }
 
-        // Send order confirmation email for each product in the cart
-        const aggregatedProducts = {};
-        cart.forEach(product => {
-            const productName = product.name;
-            if (aggregatedProducts[productName]) {
-                aggregatedProducts[productName].quantity += product.quantity;
-                aggregatedProducts[productName].totalPrice += product.totalPrice;
-            } else {
-                aggregatedProducts[productName] = {
-                    quantity: product.quantity,
-                    totalPrice: product.totalPrice,
-                };
-            }
-        });
-
-        Object.keys(aggregatedProducts).forEach(productName => {
-            const product = aggregatedProducts[productName];
-            productOrderMail(
-                name,
-                email,
-                productName,
-                product.quantity,
-                product.totalPrice,
-                address,
-            );
-        });
+        // Send order confirmation email
+        await sendOrderConfirmationEmail(
+            userName,
+            userEmail,
+            orderNumber,
+            orderDate,
+            productList,    // Send the product list
+            totalPrice,     // Send the total amount
+            cart.length     // Send the number of products in the order
+        );
 
         res.status(201).json({
             message: "Order created successfully!",
@@ -293,6 +374,7 @@ export const createOrder: RequestHandler = async (req, res) => {
         res.status(500).json({ message: "Failed to create order" });
     }
 };
+
 
 
 export const confirmedOrderPaymentStatus: RequestHandler = async (req, res) => {
@@ -308,8 +390,8 @@ export const confirmedOrderPaymentStatus: RequestHandler = async (req, res) => {
         return res.status(400).json({ message: "Order payment already confirmed!" });
     }
 
-
     await order.save();
+    await paymentConfirmationEmail(order.name, order.email, order.orderNumber, order.orderDate, order.total);
 
     res.json({ message: "Order payment verified successfully!" });
 };

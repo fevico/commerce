@@ -149,6 +149,65 @@ export const sendForgetPasswordLink = async (options: Options) =>{
 
     }
 
+    export const sendOrderConfirmationEmail = async (name:string, email:string, orderNumber: string, orderDate: string, product: string, totalAmount: number, quantity: number) =>{ 
+        // const transport = generateMailTransporter()
+        
+    const sender = {
+      email: VERIFICATION_EMAIL,
+      name: "Yoamart",
+    };
+    const recipients = [
+      {
+        email: email,
+      }
+    ];
+
+   client
+  .send({
+    from: sender,
+    to: recipients,
+    template_uuid: "2fabfd3a-ebe1-42c2-a86b-dd27fbca842c",
+    template_variables: {
+      "user_name": name,
+      "order_number": orderNumber,
+      "order_date": orderDate,
+      "product": product,
+      "quantity": quantity,
+      "total_amount": totalAmount,
+    }
+  })
+
+    }
+    export const paymentConfirmationEmail = async (name:string, email:string, orderNumber: string, orderDate: any, totalAmount: number) =>{ 
+        // const transport = generateMailTransporter()
+        
+    const sender = {
+      email: VERIFICATION_EMAIL,
+      name: "Yoamart",
+    };
+    const recipients = [
+      {
+        email: email,
+      }
+    ];
+
+   client
+   client
+   .send({
+     from: sender,
+     to: recipients,
+     template_uuid: "cf5f2ce9-497b-4876-814f-01db0ae1e64c",
+     template_variables: {
+       "user_name": name,
+       "order_number": orderNumber,
+       "payment_date": orderDate,
+       "amount": totalAmount,
+     }
+   })
+
+    }
+
+
 
     export const productOrderMail = async (name:string, email:string, product: string, quantity: number, price: number, address: string) =>{ 
 
@@ -199,6 +258,9 @@ export const sendForgetPasswordLink = async (options: Options) =>{
       category: "Succesful Order",
     
       })
+
+
+      
        
           // const transport = generateMailTransporter()
             
