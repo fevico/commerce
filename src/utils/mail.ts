@@ -95,34 +95,7 @@ export const sendForgetPasswordLink = async (options: Options) =>{
     
       })
 
-    
-    
-    
-      // transport.sendMail({
-      //   to: email,
-      //   from: VERIFICATION_EMAIL,
-      //   subject: "Reset Password Link",
-      //   html: generateTemplate({
-      //       title: 'Forget Password',
-      //       message,
-      //       logo: "cid:logo",
-      //       banner: "cid:forget_password",
-      //       link,
-      //       btnTitle: "Reset Password" 
-      //   }),
-      //   attachments: [
-      //       {
-      //           filename: "logo.png",
-      //           path: path.join(__dirname, "../mail/logo.png"),
-      //           cid: "logo"
-      //       },
-      //       {
-      //           filename: "forget_password.png",
-      //           path: path.join(__dirname, "../mail/forget_password.png"),
-      //           cid: "forget_password"
-      //       },
-      //   ]
-      // })
+  
     }
 
     export const sendPassResetSuccessEmail = async (name:string, email:string) =>{ 
@@ -192,7 +165,6 @@ export const sendForgetPasswordLink = async (options: Options) =>{
     ];
 
    client
-   client
    .send({
      from: sender,
      to: recipients,
@@ -204,6 +176,31 @@ export const sendForgetPasswordLink = async (options: Options) =>{
        "amount": totalAmount,
      }
    })
+
+    }
+
+    export const sendVerificationEmail = async (name:string, email:string, token: string) =>{ 
+        // const transport = generateMailTransporter()
+        
+    const sender = {
+      email: VERIFICATION_EMAIL,
+      name: "Yoamart",
+    };
+    const recipients = [
+      {
+        email: email,
+      }
+    ];
+    client
+    .send({
+      from: sender,
+      to: recipients,
+      template_uuid: "f889f634-362e-49c6-ad08-fc83434cec44",
+      template_variables: {
+        "user_name": name,
+        "token": token,
+      }
+    })
 
     }
 

@@ -4,7 +4,7 @@ import User from "#/model/user";
 import Shipping from "#/model/shipping";
 import { paymentConfirmationEmail, productOrderMail, sendOrderConfirmationEmail } from "#/utils/mail";
 import product from "#/model/product";
-import { generateOrderNumber } from "#/utils/order";
+import { generateOrderNumber } from "#/utils/tokenHelper";
 
 // export const createOrder: RequestHandler = async (req, res) => {
 //     const userId = req.user.id;

@@ -17,7 +17,8 @@ export const categoryValidation = yup.object().shape({
 
 export const userValidation = yup.object().shape({
     name: yup.string().required("User name is required"),
-    email:yup.string().required("User email is required"),
+    email:yup.string(),
+    phone:yup.string(),
     password:yup.string().required("User password is required").min(6, "password must be at least 6 characters long")
 })
 
@@ -45,7 +46,8 @@ export const UpdatePasswordSchema = yup.object().shape({
 })
 
 export const SignInValidationSchema = yup.object().shape({
-    email: yup.string().required("Email is missing!").email("Invalid email id!"),
+    email: yup.string().email("Invalid email id!"),
+    phone: yup.string(),
     password: yup.string().trim().required("Password is missing!")
 });
 

@@ -24,7 +24,6 @@ const userSchema = new Schema<UserDocument, Model<UserDocument>, UserMethods>({
     },
     email: {
         type: String,
-        required: true,
         unique: true,
     },
     password: {
@@ -42,7 +41,8 @@ const userSchema = new Schema<UserDocument, Model<UserDocument>, UserMethods>({
         type: String,
     },
     phone: {
-        type: String
+        type: String,
+        unique: true
     },
     favourite: [{
         type: Schema.Types.ObjectId,
