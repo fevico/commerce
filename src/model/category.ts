@@ -4,7 +4,6 @@ interface Categories {
     _id: ObjectId;
     name: string;
     image: string;
-    description: string;
 }
 
 const categorySchema = new Schema<Categories>({
@@ -16,10 +15,6 @@ const categorySchema = new Schema<Categories>({
         type: String,
         required: true
     },
-    description:{
-        type: String,
-        required: false
-    }
 }, {timestamps: true});
 
 export default model("Category", categorySchema) as Model<Categories>;

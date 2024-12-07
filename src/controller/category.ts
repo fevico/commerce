@@ -2,8 +2,8 @@ import Category from "#/model/category";
 import { RequestHandler } from "express";
 
 export const createCategory: RequestHandler = async (req, res) =>{
-    const {name, image, description} = req.body;
-    const category = new Category({name, image, description});
+    const {name, image} = req.body;
+    const category = new Category({name, image});
     await category.save();
     res.json({category}); 
 }

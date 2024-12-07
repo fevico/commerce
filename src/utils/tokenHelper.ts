@@ -1,14 +1,17 @@
+
 export const generateOrderNumber = (length: number): string => {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = '';
-  
-    for (let i = 0; i < length; i++) {
-      const randomIndex = Math.floor(Math.random() * characters.length);
-      result += characters[randomIndex];
-    }
-  
-    return result;
-  };
+  const prefix = 'YOAMART';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let randomPart = ''; // Holds the random alphanumeric part
+
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    randomPart += characters[randomIndex];
+  }
+
+  return `${prefix}-${randomPart}`; // Combine prefix and random part with a hyphen
+};
+
   
 
   

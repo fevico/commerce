@@ -46,7 +46,7 @@ export const sendForgetPasswordLink = async (options: Options) =>{
     // const transport = generateMailTransporter()
     const {email, link} = options
 
-    const message = "We just recived a request that you forget your password. No problem you can use the link below and create brand new password.";
+    const message = "We just received a request that you forget your password. No problem you can use the link below and create brand new password.";
 
 
     const sender = {
@@ -59,8 +59,8 @@ export const sendForgetPasswordLink = async (options: Options) =>{
       }
     ];
 
-    const logoImage = fs.readFileSync(path.join(__dirname, "../mail/logo.png"))
-    const forgetPasswodImage = fs.readFileSync(path.join(__dirname, "../mail/forget_password.png"))
+    const logoImage = fs.readFileSync(path.join(__dirname, "../mail/yoamart-logo.png"))
+    const forgetPasswordImage = fs.readFileSync(path.join(__dirname, "../mail/forget_password.png"))
 
     client
       .send({
@@ -86,7 +86,7 @@ export const sendForgetPasswordLink = async (options: Options) =>{
         {
           filename: "forget_password.png",
           content_id: "forget_password",
-          content: forgetPasswodImage,
+          content: forgetPasswordImage,
           disposition: "inline",
           type: "image/png"
         }
@@ -98,7 +98,7 @@ export const sendForgetPasswordLink = async (options: Options) =>{
   
     }
 
-    export const sendPassResetSuccessEmail = async (name:string, email:string) =>{ 
+  export const sendPassResetSuccessEmail = async (name:string, email:string) =>{ 
         // const transport = generateMailTransporter()
         
     const sender = {

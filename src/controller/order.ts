@@ -2,17 +2,9 @@ import { RequestHandler } from "express";
 import Order from "#/model/order";
 import User from "#/model/user";
 import Shipping from "#/model/shipping";
-import { paymentConfirmationEmail, productOrderMail, sendOrderConfirmationEmail } from "#/utils/mail";
+import { paymentConfirmationEmail, sendOrderConfirmationEmail } from "#/utils/mail";
 import product from "#/model/product";
 import { generateOrderNumber } from "#/utils/tokenHelper";
-
-// export const createOrder: RequestHandler = async (req, res) => {
-//     const userId = req.user.id;
-//     const {phone, address, productId, quantity} = req.body;
-//     const  order = await Order.create({userId, phone, address, productId, quantity})
-//     res.json({order})
-// }
-
 
 export const getAllUserOrders: RequestHandler = async (req, res) => {
     try {
@@ -179,22 +171,6 @@ export const getAllOrders: RequestHandler = async (req, res) => {
     res.json({ allOrders });
 }
 
-// export const confirmOrderByuser: RequestHandler = async (req, res) =>{
-//     const userId = req.user.id
-//     const orderId = req.params.order
-//     const userOrder = await Order.find(userId)
-//     if(!userOrder) return status(422).json({message: "No order record for this user!"});
-//     const order = await Order.findById(orderId) 
-//     if(order.status === "shipped"){
-//         order.status = "completed"
-//     }else{
-//         return res.status(422).json({message: "Order still pending cannot confirm order!"})
-//     }
-//     order.save()
-//     res.json({message: "user order confirmed succesfully!"})
-// }
-
-
 // export const createOrder: RequestHandler = async (req, res) => {
 //     const userId = req.user.id;
 //     const userName = req.user.name;
@@ -294,7 +270,7 @@ export const createOrder: RequestHandler = async (req, res) => {
             return res.status(400).json({ message: "Cart is empty!" });
         }
         
-        const orderNumber = generateOrderNumber(10);
+        const orderNumber = generateOrderNumber(4);
         const orderDate = new Date().toISOString().slice(0, 10);
 
         // Create a new order

@@ -5,7 +5,7 @@ interface ProductDocument{
     name: string;
     categoryId: Types.ObjectId;
     brandId: Types.ObjectId;
-    image: string;
+    image: string[];
     price: number;
     quantity: number;
     description: string;
@@ -29,8 +29,8 @@ const productSchema = new Schema<ProductDocument>({
         type: Schema.Types.ObjectId,
         ref: 'Brand',
       },
-    image: {
-        type: String,
+      image: {
+        type: [String],
         required: true,
     },
     price:{
