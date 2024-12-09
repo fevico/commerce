@@ -96,7 +96,8 @@ export const generateForgetPasswordLink: RequestHandler = async (req, res) => {
     token,
   });
 
-  const resetLink = `${PASSWORD_RESET_LINK}?token=${token}&userId=${user._id}`;
+  // const resetLink = `${PASSWORD_RESET_LINK}?token=${token}&userId=${user._id}`;
+  const resetLink = `${req.headers.origin}?token=${token}&userId=${user._id}`;
 
   sendForgetPasswordLink({ email: user.email, link: resetLink });
 
