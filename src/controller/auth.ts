@@ -17,12 +17,10 @@ import verificationTokenModel from "#/model/verificationToken";
 export const createUser: RequestHandler = async (req, res) => {
   try {
     const { email, name, password, phone } = req.body;
-
-    const oldUser = await User.findOne({ $or: [{ email: email }, { phone: phone }] });
-    if (oldUser) {
-      return res.status(400).json({ message: "User email/Phone already exists!" });
+    const userExist = await User.findOne({ email });
+    if (userExist) {
+      return res.status(403).json({ message: "Email already exists!" });
     }
-
     const user = await User.create({ name, email, password, phone });
     const token = generateToken();
     await verificationTokenModel.create({ userId: user._id, token });
