@@ -83,14 +83,14 @@ const getById = (id) => {
     // handle submit 
     button.disabled = true;
     button.innerHTML = "Please wait..."
-    const res = await fetch("/auth/update-password", {
+    const res = await fetch("/api/auth/update-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json;charset=utf-8",
         },
         body: JSON.stringify({
           token,
-          userId,
+          userId, 
           password:password.value,
         }),
       });
