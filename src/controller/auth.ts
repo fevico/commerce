@@ -46,12 +46,15 @@ export const createUser: RequestHandler = async (req, res) => {
 
 
 export const signIn: RequestHandler = async (req, res) => {
-  const { email, password, phone } = req.body;
+  // const { email, password, phone } = req.body;
+  const { email, password } = req.body;
 
   // Find the user based on either email or phone
-  const user = await User.findOne({
-    $or: [{ email: email }, { phone: phone }],
-  });
+  // const user = await User.findOne({
+  //   $or: [{ email: email }, { phone: phone }],
+  // });
+
+  const user = await User.findOne({ email });
 
   if (!user)
     return res.status(403).json({ message: "Email/Phone or Password Mismatch!" });
@@ -93,7 +96,8 @@ export const generateForgetPasswordLink: RequestHandler = async (req, res) => {
     token,
   });
 
-  const resetLink = `${PASSWORD_RESET_LINK}?token=${token}&userId=${user._id}`;
+  // const resetLink = `${PASSWORD_RESET_LINK}?token=${token}&userId=${user._id}`;
+  const resetLink = `${req.headers.origin}?token=${token}&userId=${user._id}`;
 
   sendForgetPasswordLink({ email: user.email, link: resetLink }); 
 
