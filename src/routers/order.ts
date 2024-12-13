@@ -1,4 +1,4 @@
-import { confirmedOrderPaymentStatus, confirmedOrderStatus, createOrder, getAllOrders, getAllUserOrders, getOrderById, totalNumberOfConfirmedOrders, totalNumberOfOrders, totalNumberOfPendingOrders, totalNumberOfProcessingOrders, totalNumberOfShippedOrders } from "#/controller/order";
+import { confirmedOrderPaymentStatus, confirmedOrderStatus, createOrder, getAllOrders, getAllUserOrders, getOrderById, totalNumberOfConfirmedOrders, totalNumberOfOrders, totalNumberOfPendingOrders, totalNumberOfProcessingOrders, totalNumberOfShippedOrders, updateOrderToProcessing } from "#/controller/order";
 import { isAdmin, mustAuth } from "#/middleware/user";
 import { Router } from "express";
 
@@ -8,7 +8,8 @@ router.post('/create-order', mustAuth, createOrder)
 router.get('/user-orders', mustAuth, getAllUserOrders)
 router.get('/:orderId', mustAuth, getOrderById)
 router.post('/:orderId', mustAuth, isAdmin, confirmedOrderStatus)
-router.post('/verify-payment/:orderId', mustAuth, isAdmin, confirmedOrderPaymentStatus)
+router.post('/update-order/:orderId', mustAuth, isAdmin, updateOrderToProcessing)
+router.post('/confirm-payment/:orderId', mustAuth, isAdmin, confirmedOrderPaymentStatus)
 router.get('/total/confimed-orders', mustAuth, isAdmin, totalNumberOfConfirmedOrders)
 router.get('/total/shipped-orders', mustAuth, isAdmin, totalNumberOfShippedOrders)
 router.get('/total/pending-orders', mustAuth, isAdmin, totalNumberOfPendingOrders)

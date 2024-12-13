@@ -9,6 +9,8 @@ import { generateOrderNumber } from "#/utils/tokenHelper";
 export const getAllUserOrders: RequestHandler = async (req, res) => {
     try {
         const userId = req.user.id;
+        // console.log(userId);
+
         const orders = await Order.find({ userId: userId });
         res.json({ orders });
     } catch (error) {
@@ -260,16 +262,16 @@ export const createOrder: RequestHandler = async (req, res) => {
     const userEmail = req.user.email;
 
     try {
-        const { name, email, phone, address, cart: cartString, totalPrice, proofOfPayment } = req.body;
+        const { name, email, phone, address, cart: cartString, totalPrice } = req.body;
 
         // Parse the stringified cart into a JavaScript object
         const cart = JSON.parse(cartString);
-
+// console.log(cart)
         // Validate the parsed cart
         if (!cart || cart.length === 0) {
             return res.status(400).json({ message: "Cart is empty!" });
         }
-        
+
         const orderNumber = generateOrderNumber(4);
         const orderDate = new Date().toISOString().slice(0, 10);
 
@@ -282,25 +284,17 @@ export const createOrder: RequestHandler = async (req, res) => {
             address,
             total: totalPrice,
             cart,  // Save the parsed cart to the order
-            proofOfPayment,
             orderStatus: "pending",
-            isPaid: false,
+            isPaid: "unpaid",
             orderNumber,
             orderDate
         });
+        
 
         // Save the order to the database
         await order.save();
 
-        // Create a shipping entry for the order
-        const shipping = new Shipping({
-            orderId: order._id,
-            name,
-            email,
-            address,
-            phone,
-        });
-        await shipping.save();
+
 
         // Prepare product names and quantities for the email
         let productList = '';
@@ -352,6 +346,49 @@ export const createOrder: RequestHandler = async (req, res) => {
 };
 
 
+export const updateOrderToProcessing: RequestHandler = async (req, res) => {
+    const orderId = req.params.orderId;
+
+    try {
+        const { name, email, address, phone, orderNumber } = req.body;
+
+        // Find the order by ID and order number
+        const order = await Order.findOne({ _id: orderId, orderNumber });
+        if (!order) {
+            return res.status(404).json({ message: "Order not found!" });
+        }
+
+        // Update the order to "Processing" and fill in the provided details
+        order.isPaid = "processing";
+        order.name = name;
+        order.email = email;
+        order.mobile = phone;
+        order.address = address;
+
+        await order.save();
+
+
+        const shipping = new Shipping({
+            orderId: order._id,
+            name,
+            email,
+            address,
+            phone,
+        });
+        await shipping.save();
+
+        res.status(200).json({
+            message: "Order updated to processing successfully!",
+            order,
+        });
+    } catch (error) {
+        console.error("Error updating order to processing:", error);
+        res.status(500).json({ message: "Failed to update order to processing" });
+    }
+};
+
+
+
 
 export const confirmedOrderPaymentStatus: RequestHandler = async (req, res) => {
     const orderId = req.params.orderId;
@@ -359,8 +396,8 @@ export const confirmedOrderPaymentStatus: RequestHandler = async (req, res) => {
     if (!order) return res.status(400).json({ message: "Cannot find order document!" });
 
 
-    if (order.isPaid === false) {
-        order.isPaid = true;
+    if (order.isPaid === "processing") {
+        order.isPaid = "paid";
 
     } else {
         return res.status(400).json({ message: "Order payment already confirmed!" });

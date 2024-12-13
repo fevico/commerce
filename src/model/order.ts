@@ -21,7 +21,7 @@ export interface OrderDocument {
   mobile: string;
   proofOfPayment: string;
   orderStatus: "pending" | "shipped" | "completed";
-  isPaid: boolean;
+  isPaid: "unpaid" | "processing" | "paid";
   orderNumber: string;
   orderDate: Date;
 }
@@ -34,7 +34,7 @@ const orderSchema = new Schema<OrderDocument>(
     },
     address: {
       type: String,
-      required: true,
+      required: false,
     },
     email: {
       type: String,
@@ -42,7 +42,7 @@ const orderSchema = new Schema<OrderDocument>(
     },
     name: {
       type: String,
-      required: true,
+      required: false,
     },
     cart: [
       {
@@ -64,7 +64,7 @@ const orderSchema = new Schema<OrderDocument>(
           required: false,
         },
         image: {
-          type: String,
+          type: [String],
           required: true,
         },
         quantity: {
@@ -79,19 +79,16 @@ const orderSchema = new Schema<OrderDocument>(
     },
     mobile: {
       type: String,
-      required: true,
+      required: false,
     },
-    proofOfPayment: {
-      type: String,
-      required: true,
-    },
+
     orderStatus: {
       type: String,
       default: "pending",
     },
     isPaid: {
-      type: Boolean,
-      default: false,
+      type: String,
+      default: "unpaid",
     },
     orderNumber: {
       type: String,
