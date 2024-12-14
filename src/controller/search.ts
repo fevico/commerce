@@ -5,14 +5,21 @@ interface ProductSearchResult {
     name: string;
     price: number;
     category: string | null;
+    categoryId: string | null;
     image: string[];
     discount: number;
     inStock: boolean;
-}
-
-interface categorySearchResult {
+    _id: string;
+    quantity: number;
+    description: string;
+  }
+  
+  interface categorySearchResult {
     name: string;
-}
+    _id: string;
+  }
+
+  
 export const searchProducts: RequestHandler = async (req, res) => {
     try {
         const { title, page = "1", limit = "20" } = req.query;
@@ -46,10 +53,13 @@ export const searchProducts: RequestHandler = async (req, res) => {
             name: product.name,
             price: product.price,
             category: product.categoryId?.name || null,
+            categoryId: product.categoryId._id.toString() || null,
             image: product.image,
             discount: product.discount,
-            inStock: product.inStock,
-            featured: product.featured,
+            inStock: product.quantity > 0,
+            _id: product._id.toString(),
+            quantity: product.quantity,
+            description: product.description,
         }));
 
         // Return results with pagination metadata

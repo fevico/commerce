@@ -10,13 +10,18 @@ interface ProductSearchResult {
   name: string;
   price: number;
   category: string | null;
+  categoryId: string | null;
   image: string[];
   discount: number;
   inStock: boolean;
+  _id: string;
+  quantity: number;
+  description: string;
 }
 
 interface categorySearchResult {
   name: string;
+  _id: string;
 }
 
 export const getAllProducts: RequestHandler = async (req, res) => {
@@ -38,7 +43,6 @@ export const getAllProducts: RequestHandler = async (req, res) => {
       // Query the database with pagination and population
       const products = await Product.find()
           .populate<{categoryId: categorySearchResult}>("categoryId")
-          .populate("brandId")
           .skip(skip)
           .limit(limitNumber);
 
@@ -46,9 +50,14 @@ export const getAllProducts: RequestHandler = async (req, res) => {
             name: product.name,
             price: product.price,
             category: product.categoryId?.name || null,
+            categoryId: product.categoryId._id.toString() || null,
             image: product.image,
             discount: product.discount,
             inStock: product.quantity > 0,
+            _id: product._id.toString(),
+            quantity: product.quantity,
+            description: product.description,
+
           }))
       // Get the total count of products
       const totalProducts = await Product.countDocuments();
@@ -90,7 +99,6 @@ export const createProduct: RequestHandler = async (req, res) => {
     quantity,
     featured,
     discount,
-    brandId,
   } = req.body;
   const product = new Product({
     name,
@@ -101,7 +109,7 @@ export const createProduct: RequestHandler = async (req, res) => {
     quantity,
     featured,
     discount,
-    brandId
+    
   });
   await product.save();
   res.json({ product });
@@ -229,7 +237,6 @@ export const toggleProductStock: RequestHandler = async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: "Product not found!" });
     }
-
     // Toggle the `inStock` field
     product.inStock = !product.inStock;
 
