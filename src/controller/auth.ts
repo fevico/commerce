@@ -66,7 +66,7 @@ export const signIn: RequestHandler = async (req, res) => {
 
   // Generate JWT token
   const token = jwt.sign(
-    { userId: user._id, role: user.role, name: user.name, email: user.email },
+    { userId: user._id, role: user.role, name: user.name, email: user.email, phone: user.phone, address: user.address },
     JWT_SECRET,
     { expiresIn: '1d' }
   );
@@ -143,12 +143,63 @@ export const updatePassword: RequestHandler = async (req, res) => {
 };
 
 export const updateProfile: RequestHandler = async (req, res) => {
-  const { address, phone, name, email } = req.body;
-  const userId = req.user.id;
-  const user = await User.findByIdAndUpdate(userId, { address, phone, name, email });
-  if (!user) return res.status(403).json({ error: "Unauthorized request!" });
-  res.json({ message: "Profile updated successfully!" });
+  try {
+    const { address, phone, name, email, currentPassword, password } = req.body;
+    const userId = req.user.id; // Assume req.user is populated via middleware
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(403).json({ error: "Unauthorized request!" });
+
+    // Check if current password is provided for password update
+    if (password) {
+      if (!currentPassword) {
+        return res
+          .status(400)
+          .json({ error: "Current password is required to update the password." });
+      }
+
+      const isCurrentPasswordCorrect = await user.comparePassword(currentPassword);
+      if (!isCurrentPasswordCorrect) {
+        return res.status(422).json({ error: "Current password is incorrect!" });
+      }
+
+      if (password === currentPassword) {
+        return res
+          .status(422)
+          .json({ error: "The new password must be different from the current password!" });
+      }
+
+      user.password = password; // Update password if all checks pass
+    }
+
+    // Update other fields
+    if (address) user.address = address;
+    if (phone) user.phone = phone;
+    if (name) user.name = name;
+    if (email) user.email = email;
+
+
+    const token = jwt.sign(
+      { userId: user._id, role: user.role, name: name || user.name, email: user.email, phone: phone || user.phone, address: address || user.address },
+      JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    user.token = token;
+
+
+
+
+    await user.save();
+
+    res.json({ message: "Profile updated successfully!", token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "An unexpected error occurred." });
+  }
 };
+
+
 
 export const getTotalUsers: RequestHandler = async (req, res) => {
   try {

@@ -58,6 +58,7 @@ export const getAllUserOrders: RequestHandler = async (req, res) => {
 
 export const getOrderById: RequestHandler = async (req, res) => {
     const userId = req.user.id;
+
     const user = await User.findOne({ _id: userId });
     if (!user) res.status(403).json({ error: "Unauthorized request!" })
     const orderId = req.params.orderId; // Access orderId directly from req.params
@@ -86,14 +87,19 @@ export const getOrderById: RequestHandler = async (req, res) => {
                     productQty: '$quantity',
                     address: '$address', // Include address field from Order collection
                     phone: '$phone', // Include phone field from Order collection
-                    status: '$status'
+                    status: '$status',
+                    orderNumber: '$orderNumber',
+                    orderDate: '$orderDate',
+                    note: '$note'
+                    // Add more fields as needed
+
                 }
             }
         ]);
 
         if (!getOrder) return res.status(400).json({ message: 'Something went wrong!' })
 
-        res.json({ getOrder });
+        res.json({ order });
     } catch (error) {
         console.error("Error fetching order details:", error);
         res.status(500).json({ message: "An error occurred while fetching order details" });
@@ -266,12 +272,11 @@ export const createOrder: RequestHandler = async (req, res) => {
 
         // Parse the stringified cart into a JavaScript object
         const cart = JSON.parse(cartString);
-// console.log(cart)
+        // console.log(cart)
         // Validate the parsed cart
         if (!cart || cart.length === 0) {
             return res.status(400).json({ message: "Cart is empty!" });
         }
-
         const orderNumber = generateOrderNumber(4);
         const orderDate = new Date().toISOString().slice(0, 10);
 
@@ -289,7 +294,7 @@ export const createOrder: RequestHandler = async (req, res) => {
             orderNumber,
             orderDate
         });
-        
+
 
         // Save the order to the database
         await order.save();
@@ -350,7 +355,7 @@ export const updateOrderToProcessing: RequestHandler = async (req, res) => {
     const orderId = req.params.orderId;
 
     try {
-        const { name, email, address, phone, orderNumber } = req.body;
+        const { name, email, address, phone, note, orderNumber } = req.body;
 
         // Find the order by ID and order number
         const order = await Order.findOne({ _id: orderId, orderNumber });
@@ -364,6 +369,7 @@ export const updateOrderToProcessing: RequestHandler = async (req, res) => {
         order.email = email;
         order.mobile = phone;
         order.address = address;
+        order.note = note;
 
         await order.save();
 
@@ -374,6 +380,7 @@ export const updateOrderToProcessing: RequestHandler = async (req, res) => {
             email,
             address,
             phone,
+            note,
         });
         await shipping.save();
 

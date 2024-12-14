@@ -23,6 +23,7 @@ export interface OrderDocument {
   orderStatus: "pending" | "shipped" | "completed";
   isPaid: "unpaid" | "processing" | "paid";
   orderNumber: string;
+  note: string;
   orderDate: Date;
 }
 
@@ -91,6 +92,10 @@ const orderSchema = new Schema<OrderDocument>(
       default: "unpaid",
     },
     orderNumber: {
+      type: String,
+      required: false,
+    },
+    note: {
       type: String,
       required: false,
     },
