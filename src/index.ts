@@ -10,6 +10,7 @@ import orderRouter from './routers/order'
 import blogRouter from './routers/blog'
 import paymentRouter from './routers/payment';
 import brandRouter from './routers/brand';
+import searchRouter from './routers/search';
 
 const app = express();
 
@@ -26,10 +27,11 @@ app.use(express.static("src/public"));
 app.use('/api/category', categoryRouter);
 app.use('/api/product', productRouter);
 app.use('/api/auth', authRouter);
-app.use('/api/order', orderRouter);
+app.use('/api/order', orderRouter); 
 app.use('/api/payment', paymentRouter);
 app.use('/api/blog', blogRouter);
 app.use('/api/brand', brandRouter)
+app.use('/api/search', searchRouter)
 
 app.use(function (err, req, res, next) {
   res.status(500).json({ message: err.message })
@@ -37,6 +39,6 @@ app.use(function (err, req, res, next) {
 
 const PORT = 5004;
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', () => { 
   console.log('Port is listening on ' + PORT);
 })

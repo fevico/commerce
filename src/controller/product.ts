@@ -3,11 +3,71 @@ import Product from "#/model/product";
 import User from "#/model/user";
 import { isValidObjectId } from "mongoose";
 import { Parser } from "json2csv";
+import mongoose from "mongoose";
+
+
+interface ProductSearchResult {
+  name: string;
+  price: number;
+  category: string | null;
+  image: string[];
+  discount: number;
+  inStock: boolean;
+}
+
+interface categorySearchResult {
+  name: string;
+}
 
 export const getAllProducts: RequestHandler = async (req, res) => {
-  const products = await Product.find().populate("categoryId").populate("brandId");
-  res.json({ products });
-}
+  const { page = 1, limit = 10 } = req.query;
+
+  // Parse query parameters as integers
+  const pageNumber = parseInt(page as string, 10);
+  const limitNumber = parseInt(limit as string, 10);
+
+  // Validate inputs
+  if (isNaN(pageNumber) || isNaN(limitNumber) || pageNumber < 1 || limitNumber < 1) {
+      return res.status(400).json({ message: "Invalid pagination parameters." }); 
+  }
+
+  try {
+      // Calculate the number of documents to skip
+      const skip = (pageNumber - 1) * limitNumber;
+
+      // Query the database with pagination and population
+      const products = await Product.find()
+          .populate<{categoryId: categorySearchResult}>("categoryId")
+          .populate("brandId")
+          .skip(skip)
+          .limit(limitNumber);
+
+          const fetchedProduct = products.map<ProductSearchResult>((product) =>({
+            name: product.name,
+            price: product.price,
+            category: product.categoryId?.name || null,
+            image: product.image,
+            discount: product.discount,
+            inStock: product.quantity > 0,
+          }))
+      // Get the total count of products
+      const totalProducts = await Product.countDocuments();
+
+      // Send the response
+      return res.json({
+         pagination:{
+          currentPage: pageNumber,
+          totalPages: Math.ceil(totalProducts / limitNumber),
+          totalProducts,
+         },
+          products: fetchedProduct
+      });
+  } catch (error) {
+      console.error("Error fetching products:", error);
+      return res.status(500).json({ message: "An error occurred while fetching products." });
+  }
+};
+
 
 export const getProductById: RequestHandler = async (req, res) => {
   const { productId } = req.params;
@@ -213,6 +273,96 @@ export const exportProductToCSV: RequestHandler = async (req, res) => {
     res.status(500).json({ message: "An error occurred while generating the CSV file." });
   }
 };
+
+// const { page = 1, limit = 10 } = req.query;
+// const skip = (parseInt(page as string, 10) - 1) * parseInt(limit as string, 10);
+// const products = await Product.find({ categoryId }).skip(skip).limit(parseInt(limit as string, 10));
+
+// const { minPrice, maxPrice, brandId } = req.query;
+// const query: any = { categoryId };
+// if (minPrice) query.price = { $gte: parseFloat(minPrice as string) };
+// if (maxPrice) query.price = { ...query.price, $lte: parseFloat(maxPrice as string) };
+// if (brandId) query.brandId = brandId;
+// const products = await Product.find(query); 
+
+
+// export const filterProductsByCategory: RequestHandler = async (req, res) => {
+//     const { categoryId } = req.query;
+
+//     // Validate categoryId
+//     if (!categoryId || typeof categoryId !== "string") {
+//         return res.status(400).json({ message: "Category ID is required and must be a string." });
+//     }
+
+//     try {
+//         // Convert categoryId to ObjectId
+//         const objectId = new mongoose.Types.ObjectId(categoryId);
+
+//         // Fetch products filtered by categoryId
+//         const products = await Product.find({ categoryId: objectId })
+//             .populate<{ categoryId: { name: string } }>("categoryId");
+
+//         // Transform the product data
+//         const fetchedProduct = products.map(product => ({
+//             name: product.name,
+//             price: product.price,
+//             category: product.categoryId?.name || null,
+//             image: product.image,
+//             discount: product.discount,
+//             inStock: product.quantity > 0,
+//         }));
+
+//         return res.json({ fetchedProduct });
+//     } catch (error) {
+//         if (error instanceof mongoose.Error.CastError) {
+//             return res.status(400).json({ message: "Invalid Category ID format." });
+//         }
+//         console.error("Error fetching products by category:", error);
+//         return res.status(500).json({ message: "An error occurred while fetching products." });
+//     }
+// };
+
+export const filterProductsByCategory: RequestHandler = async (req, res) => {
+    const { categoryId } = req.query;
+
+    // Validate that categoryId is provided and is a valid string
+    if (!categoryId || typeof categoryId !== "string") {
+        return res.status(400).json({ message: "Category ID is required and must be a string." });
+    }
+
+    try {
+        // Convert categoryId to ObjectId
+        const objectId = new mongoose.Types.ObjectId(categoryId);
+
+        // Query products by categoryId
+        const products = await Product.find({ categoryId: objectId })
+            .populate<{ categoryId: { name: string } }>("categoryId") // Populate categoryId with its name
+            .select("name price image discount quantity featured categoryId"); // Select specific fields to return
+
+        // Map results to include the necessary fields
+        const fetchedProduct = products.map(product => ({
+            name: product.name,
+            price: product.price,
+            category: product.categoryId?.name || null, // Include category name
+            image: product.image,
+            discount: product.discount,
+            inStock: product.quantity > 0, // Derive inStock status
+            featured: product.featured,
+        }));
+
+        return res.json({ products: fetchedProduct });
+    } catch (error) {
+        console.error("Error filtering products by category:", error);
+
+        // Handle invalid ObjectId format
+        if (error instanceof mongoose.Error.CastError) {
+            return res.status(400).json({ message: "Invalid Category ID format." });
+        }
+
+        return res.status(500).json({ message: "An error occurred while fetching products." });
+    }
+};
+
 
 
 

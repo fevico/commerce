@@ -18,7 +18,7 @@ interface UserMethods {
 }
 
 const userSchema = new Schema<UserDocument, Model<UserDocument>, UserMethods>({
-    name: {
+    name: { 
         type: String,
         required: true,
     },
@@ -42,7 +42,7 @@ const userSchema = new Schema<UserDocument, Model<UserDocument>, UserMethods>({
     },
     phone: {
         type: String,
-        unique: true
+        unique: true 
     },
     favourite: [{
         type: Schema.Types.ObjectId,

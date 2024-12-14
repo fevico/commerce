@@ -3,6 +3,7 @@ import {
   createProduct,
   deleteproduct,
   exportProductToCSV,
+  filterProductsByCategory,
   getAllProducts,
   getProductById,
   getUserFavorites,
@@ -25,5 +26,6 @@ router.patch("/:productId", mustAuth, isAdmin, updateProduct);
 router.delete("/:productId", mustAuth, isAdmin, deleteproduct);
 router.get("/total/products",mustAuth, isAdmin, totalNumberOfProducts) 
 router.get("/export/csv", exportProductToCSV) 
+router.get("/filter", filterProductsByCategory)
 
 export default router;
