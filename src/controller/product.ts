@@ -281,105 +281,15 @@ export const exportProductToCSV: RequestHandler = async (req, res) => {
   }
 };
 
-// const { page = 1, limit = 10 } = req.query;
-// const skip = (parseInt(page as string, 10) - 1) * parseInt(limit as string, 10);
-// const products = await Product.find({ categoryId }).skip(skip).limit(parseInt(limit as string, 10));
 
-// const { minPrice, maxPrice, brandId } = req.query;
-// const query: any = { categoryId };
-// if (minPrice) query.price = { $gte: parseFloat(minPrice as string) };
-// if (maxPrice) query.price = { ...query.price, $lte: parseFloat(maxPrice as string) };
-// if (brandId) query.brandId = brandId;
-// const products = await Product.find(query); 
-
-
-// export const filterProductsByCategory: RequestHandler = async (req, res) => {
-//     const { categoryId } = req.query;
-
-//     // Validate categoryId
-//     if (!categoryId || typeof categoryId !== "string") {
-//         return res.status(400).json({ message: "Category ID is required and must be a string." });
-//     }
-
-//     try {
-//         // Convert categoryId to ObjectId
-//         const objectId = new mongoose.Types.ObjectId(categoryId);
-
-//         // Fetch products filtered by categoryId
-//         const products = await Product.find({ categoryId: objectId })
-//             .populate<{ categoryId: { name: string } }>("categoryId");
-
-//         // Transform the product data
-//         const fetchedProduct = products.map(product => ({
-//             name: product.name,
-//             price: product.price,
-//             category: product.categoryId?.name || null,
-//             image: product.image,
-//             discount: product.discount,
-//             inStock: product.quantity > 0,
-//         }));
-
-//         return res.json({ fetchedProduct });
-//     } catch (error) {
-//         if (error instanceof mongoose.Error.CastError) {
-//             return res.status(400).json({ message: "Invalid Category ID format." });
-//         }
-//         console.error("Error fetching products by category:", error);
-//         return res.status(500).json({ message: "An error occurred while fetching products." });
-//     }
-// };
-
-// export const filterProductsByCategory: RequestHandler = async (req, res) => {
-//     const { categoryId, min, max } = req.query;
-
-//     // Validate that categoryId is provided and is a valid string
-//     if (!categoryId || typeof categoryId !== "string") {
-//         return res.status(400).json({ message: "Category ID is required and must be a string." });
-//     }
-
-//     try {
-//         // Convert categoryId to ObjectId
-//         const objectId = new mongoose.Types.ObjectId(categoryId);
-
-//         // Query products by categoryId
-//         const products = await Product.find({ categoryId: objectId })
-//             .populate<{ categoryId: { name: string } }>("categoryId") // Populate categoryId with its name
-//             .select("name price image discount quantity featured categoryId"); // Select specific fields to return
-
-//         // Map results to include the necessary fields
-//         const fetchedProduct = products.map(product => ({
-//             name: product.name,
-//             price: product.price,
-//             category: product.categoryId?.name || null, // Include category name
-//             image: product.image,
-//             discount: product.discount,
-//             inStock: product.quantity > 0, // Derive inStock status
-//             featured: product.featured,
-//         }));
-
-//         return res.json({ products: fetchedProduct });
-//     } catch (error) {
-//         console.error("Error filtering products by category:", error);
-
-//         // Handle invalid ObjectId format
-//         if (error instanceof mongoose.Error.CastError) {
-//             return res.status(400).json({ message: "Invalid Category ID format." });
-//         }
-
-//         return res.status(500).json({ message: "An error occurred while fetching products." });
-//     }
-// };
-
-
-export const filterProductsByCategory: RequestHandler = async (req, res) => {
+export const filterProductsSearch: RequestHandler = async (req, res) => {
   const { categoryId, min, max, page = 1, limit = 10 } = req.query;
 
-  // Parse and validate categoryId only if it exists
   let objectId;
   if (categoryId) {
-      try {
+      if (mongoose.isValidObjectId(categoryId)) {
           objectId = new mongoose.Types.ObjectId(categoryId as string);
-      } catch {
+      } else {
           return res.status(400).json({ message: "Invalid Category ID format." });
       }
   }
@@ -426,11 +336,11 @@ export const filterProductsByCategory: RequestHandler = async (req, res) => {
       }));
 
       return res.json({
+        total,
+        totalPages: Math.ceil(total / pageLimit),
+        currentPage,
+        limit: pageLimit,
           products: fetchedProducts,
-          total,
-          totalPages: Math.ceil(total / pageLimit),
-          currentPage,
-          limit: pageLimit,
       });
   } catch (error) {
       console.error("Error filtering products:", error);
@@ -439,7 +349,7 @@ export const filterProductsByCategory: RequestHandler = async (req, res) => {
 };
 
 export const sortProducts: RequestHandler = async (req, res) => {
-  const { sortBy = "alphabetical", order = "asc" } = req.query;
+  const { sortBy = "alphabetical", order = "asc", page = 1, limit = 10 } = req.query;
 
   // Validate `sortBy` and `order` query parameters
   const validSortBy = ["alphabetical", "newest"];
@@ -453,6 +363,16 @@ export const sortProducts: RequestHandler = async (req, res) => {
       return res.status(400).json({ message: "Invalid order parameter. Use 'asc' or 'desc'." });
   }
 
+  // Parse and validate pagination parameters
+  const currentPage = parseInt(page as string, 10);
+  const pageLimit = parseInt(limit as string, 10);
+  if (isNaN(currentPage) || currentPage <= 0) {
+      return res.status(400).json({ message: "Invalid page parameter. It must be a positive number." });
+  }
+  if (isNaN(pageLimit) || pageLimit <= 0) {
+      return res.status(400).json({ message: "Invalid limit parameter. It must be a positive number." });
+  }
+
   try {
       // Determine sort options based on query
       let sortOption: Record<string, any> = {};
@@ -463,17 +383,32 @@ export const sortProducts: RequestHandler = async (req, res) => {
           sortOption = { createdAt: order === "asc" ? 1 : -1 }; // Sort by createdAt
       }
 
-      // Fetch sorted products
-      const products = await Product.find()
-          .sort(sortOption)
-          .select("name price image discount featured createdAt");
+      // Pagination setup
+      const skip = (currentPage - 1) * pageLimit;
 
-      return res.json({ products });
+      // Fetch sorted and paginated products
+      const [products, total] = await Promise.all([
+          Product.find()
+              .sort(sortOption)
+              .skip(skip)
+              .limit(pageLimit)
+              .select("name price image discount featured createdAt"),
+          Product.countDocuments(),
+      ]);
+
+      return res.json({
+        total,
+        totalPages: Math.ceil(total / pageLimit),
+        currentPage,
+        limit: pageLimit,
+          products,
+      });
   } catch (error) {
       console.error("Error sorting products:", error);
       return res.status(500).json({ message: "An error occurred while sorting products." });
   }
 };
+
 
 
 
