@@ -16,23 +16,24 @@ import verificationTokenModel from "#/model/verificationToken";
 
 export const createUser: RequestHandler = async (req, res) => {
   try {
-    const { email, name, password, phone } = req.body;
+    const { email, name, password } = req.body;
     const userExist = await User.findOne({ email });
     if (userExist) {
       return res.status(403).json({ message: "Email already exists!" });
     }
     const user = await User.create({ name, email, password, phone });
-    const token = generateToken();
-    await verificationTokenModel.create({ userId: user._id, token });
+
+    // const token = generateToken();
+    // await verificationTokenModel.create({ userId: user._id, token });
 
     // Only attempt to send an email if the email field is populated
-    if (email) {
-      sendVerificationEmail(user.name, user.email, token,);
-    }
+    // if (email) {
+    //   sendVerificationEmail(user.name, user.email, token,);
+    // }
 
     res.json({
       user: {
-        id: user.id,
+        id: user._id,
         email: user.email,
         name: user.name,
         phone: user.phone,
@@ -46,13 +47,7 @@ export const createUser: RequestHandler = async (req, res) => {
 
 
 export const signIn: RequestHandler = async (req, res) => {
-  // const { email, password, phone } = req.body;
   const { email, password } = req.body;
-
-  // Find the user based on either email or phone
-  // const user = await User.findOne({
-  //   $or: [{ email: email }, { phone: phone }],
-  // });
 
   const user = await User.findOne({ email });
 
@@ -71,8 +66,8 @@ export const signIn: RequestHandler = async (req, res) => {
     { expiresIn: '1d' }
   );
 
-  user.token = token;
-  await user.save();
+  // user.token = token;
+  // await user.save();
 
   res.json({ token });
 };
@@ -212,23 +207,23 @@ export const getTotalUsers: RequestHandler = async (req, res) => {
   }
 };
 
-export const googleSignUp: RequestHandler = async (req, res) => {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
-  res.header('Referrer-Policy', 'no-referrer-when-downgrade');
+// export const googleSignUp: RequestHandler = async (req, res) => {
+//   res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
+//   res.header('Referrer-Policy', 'no-referrer-when-downgrade');
 
-  const redirectUrl = 'http://127.0.0.1:9090/oauth';
+//   const redirectUrl = 'http://127.0.0.1:9090/oauth';
 
-  const OAuthClient = new OAuth2Client(
-    CLIENT_SECRET, CLIENT_ID, redirectUrl
-  )
+//   const OAuthClient = new OAuth2Client(
+//     CLIENT_SECRET, CLIENT_ID, redirectUrl
+//   )
 
-  const authorizeUrl = OAuthClient.generateAuthUrl({
-    access_type: 'offline',
-    scope: 'https://www.googleapis.com/auth/userinfo.profile openid',
-    prompt: 'consent'
-  });
-  res.json({ url: authorizeUrl })
-}
+//   const authorizeUrl = OAuthClient.generateAuthUrl({
+//     access_type: 'offline',
+//     scope: 'https://www.googleapis.com/auth/userinfo.profile openid',
+//     prompt: 'consent'
+//   });
+//   res.json({ url: authorizeUrl })
+// }
 
 
 export const getAllUsers: RequestHandler = async (req, res) => {

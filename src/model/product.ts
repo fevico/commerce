@@ -1,7 +1,7 @@
 import { Model, model, Schema, Types } from "mongoose";
 
 interface ProductDocument{
-    _id: Types.ObjectId;
+    // _id: Types.ObjectId;
     name: string;
     categoryId: Types.ObjectId;
     brandId: Types.ObjectId;

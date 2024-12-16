@@ -329,46 +329,152 @@ export const exportProductToCSV: RequestHandler = async (req, res) => {
 //     }
 // };
 
+// export const filterProductsByCategory: RequestHandler = async (req, res) => {
+//     const { categoryId, min, max } = req.query;
+
+//     // Validate that categoryId is provided and is a valid string
+//     if (!categoryId || typeof categoryId !== "string") {
+//         return res.status(400).json({ message: "Category ID is required and must be a string." });
+//     }
+
+//     try {
+//         // Convert categoryId to ObjectId
+//         const objectId = new mongoose.Types.ObjectId(categoryId);
+
+//         // Query products by categoryId
+//         const products = await Product.find({ categoryId: objectId })
+//             .populate<{ categoryId: { name: string } }>("categoryId") // Populate categoryId with its name
+//             .select("name price image discount quantity featured categoryId"); // Select specific fields to return
+
+//         // Map results to include the necessary fields
+//         const fetchedProduct = products.map(product => ({
+//             name: product.name,
+//             price: product.price,
+//             category: product.categoryId?.name || null, // Include category name
+//             image: product.image,
+//             discount: product.discount,
+//             inStock: product.quantity > 0, // Derive inStock status
+//             featured: product.featured,
+//         }));
+
+//         return res.json({ products: fetchedProduct });
+//     } catch (error) {
+//         console.error("Error filtering products by category:", error);
+
+//         // Handle invalid ObjectId format
+//         if (error instanceof mongoose.Error.CastError) {
+//             return res.status(400).json({ message: "Invalid Category ID format." });
+//         }
+
+//         return res.status(500).json({ message: "An error occurred while fetching products." });
+//     }
+// };
+
+
 export const filterProductsByCategory: RequestHandler = async (req, res) => {
-    const { categoryId } = req.query;
+  const { categoryId, min, max, page = 1, limit = 10 } = req.query;
 
-    // Validate that categoryId is provided and is a valid string
-    if (!categoryId || typeof categoryId !== "string") {
-        return res.status(400).json({ message: "Category ID is required and must be a string." });
-    }
+  // Parse and validate categoryId only if it exists
+  let objectId;
+  if (categoryId) {
+      try {
+          objectId = new mongoose.Types.ObjectId(categoryId as string);
+      } catch {
+          return res.status(400).json({ message: "Invalid Category ID format." });
+      }
+  }
 
-    try {
-        // Convert categoryId to ObjectId
-        const objectId = new mongoose.Types.ObjectId(categoryId);
+  const priceFilter: Record<string, number> = {};
+  if (min) {
+      const minPrice = parseFloat(min as string);
+      if (!isNaN(minPrice)) priceFilter.$gte = minPrice;
+  }
+  if (max) {
+      const maxPrice = parseFloat(max as string);
+      if (!isNaN(maxPrice)) priceFilter.$lte = maxPrice;
+  }
 
-        // Query products by categoryId
-        const products = await Product.find({ categoryId: objectId })
-            .populate<{ categoryId: { name: string } }>("categoryId") // Populate categoryId with its name
-            .select("name price image discount quantity featured categoryId"); // Select specific fields to return
+  try {
+      // Build the query object
+      const query: Record<string, any> = {};
+      if (objectId) query.categoryId = objectId;
+      if (Object.keys(priceFilter).length > 0) query.price = priceFilter;
 
-        // Map results to include the necessary fields
-        const fetchedProduct = products.map(product => ({
-            name: product.name,
-            price: product.price,
-            category: product.categoryId?.name || null, // Include category name
-            image: product.image,
-            discount: product.discount,
-            inStock: product.quantity > 0, // Derive inStock status
-            featured: product.featured,
-        }));
+      // Pagination setup
+      const currentPage = parseInt(page as string, 10);
+      const pageLimit = parseInt(limit as string, 10);
+      const skip = (currentPage - 1) * pageLimit;
 
-        return res.json({ products: fetchedProduct });
-    } catch (error) {
-        console.error("Error filtering products by category:", error);
+      // Query with filters and pagination
+      const [products, total] = await Promise.all([
+          Product.find(query)
+              .populate<{ categoryId: { name: string } }>("categoryId")
+              .select("name price image discount quantity featured categoryId")
+              .skip(skip)
+              .limit(pageLimit),
+          Product.countDocuments(query),
+      ]);
 
-        // Handle invalid ObjectId format
-        if (error instanceof mongoose.Error.CastError) {
-            return res.status(400).json({ message: "Invalid Category ID format." });
-        }
+      const fetchedProducts = products.map(product => ({
+          name: product.name,
+          price: product.price,
+          category: product.categoryId?.name || null,
+          image: product.image,
+          discount: product.discount,
+          inStock: product.quantity > 0,
+          featured: product.featured,
+      }));
 
-        return res.status(500).json({ message: "An error occurred while fetching products." });
-    }
+      return res.json({
+          products: fetchedProducts,
+          total,
+          totalPages: Math.ceil(total / pageLimit),
+          currentPage,
+          limit: pageLimit,
+      });
+  } catch (error) {
+      console.error("Error filtering products:", error);
+      return res.status(500).json({ message: "An error occurred while fetching products." });
+  }
 };
+
+export const sortProducts: RequestHandler = async (req, res) => {
+  const { sortBy = "alphabetical", order = "asc" } = req.query;
+
+  // Validate `sortBy` and `order` query parameters
+  const validSortBy = ["alphabetical", "newest"];
+  const validOrder = ["asc", "desc"];
+
+  if (!validSortBy.includes(sortBy as string)) {
+      return res.status(400).json({ message: "Invalid sortBy parameter. Use 'alphabetical' or 'newest'." });
+  }
+
+  if (!validOrder.includes(order as string)) {
+      return res.status(400).json({ message: "Invalid order parameter. Use 'asc' or 'desc'." });
+  }
+
+  try {
+      // Determine sort options based on query
+      let sortOption: Record<string, any> = {};
+
+      if (sortBy === "alphabetical") {
+          sortOption = { name: order === "asc" ? 1 : -1 }; // Sort by name
+      } else if (sortBy === "newest") {
+          sortOption = { createdAt: order === "asc" ? 1 : -1 }; // Sort by createdAt
+      }
+
+      // Fetch sorted products
+      const products = await Product.find()
+          .sort(sortOption)
+          .select("name price image discount featured createdAt");
+
+      return res.json({ products });
+  } catch (error) {
+      console.error("Error sorting products:", error);
+      return res.status(500).json({ message: "An error occurred while sorting products." });
+  }
+};
+
 
 
 

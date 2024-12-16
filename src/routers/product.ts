@@ -7,7 +7,6 @@ import {
   getAllProducts,
   getProductById,
   getUserFavorites,
-  toggleProductStock,
   totalNumberOfProducts,
   updateProduct,
 } from "#/controller/product"; 
@@ -25,9 +24,8 @@ router.post("/create-product", createProduct);
 router.post("/add-to-fav", mustAuth, addToFavourite);
 router.patch("/:productId", mustAuth, isAdmin, updateProduct);
 router.delete("/:productId", mustAuth, isAdmin, deleteproduct);
-router.post("/stock", toggleProductStock) 
 router.get("/total/products",mustAuth, isAdmin, totalNumberOfProducts) 
 router.get("/export/csv", exportProductToCSV) 
-router.get("/filter", filterProductsByCategory)
+router.get("filtered", filterProductsByCategory)
 
 export default router;
