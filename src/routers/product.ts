@@ -3,10 +3,11 @@ import {
   createProduct,
   deleteproduct,
   exportProductToCSV,
-  filterProductsByCategory,
+  filterProductsSearch,
   getAllProducts,
   getProductById,
   getUserFavorites,
+  sortProducts,
   totalNumberOfProducts,
   updateProduct,
 } from "#/controller/product"; 
@@ -26,6 +27,7 @@ router.patch("/:productId", mustAuth, isAdmin, updateProduct);
 router.delete("/:productId", mustAuth, isAdmin, deleteproduct);
 router.get("/total/products",mustAuth, isAdmin, totalNumberOfProducts) 
 router.get("/export/csv", exportProductToCSV) 
-router.get("filtered", filterProductsByCategory)
+router.get("/filter/search", filterProductsSearch)
+router.get("/sort/search", sortProducts)
 
 export default router;
