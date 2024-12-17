@@ -24,8 +24,10 @@ interface categorySearchResult {
   _id: string;
 }
 
+
+
 export const getAllProducts: RequestHandler = async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
+  const { page = 1, limit = 10, category, min, max, sort, inStock, outOfStock } = req.query;
 
   // Parse query parameters as integers
   const pageNumber = parseInt(page as string, 10);
@@ -33,47 +35,97 @@ export const getAllProducts: RequestHandler = async (req, res) => {
 
   // Validate inputs
   if (isNaN(pageNumber) || isNaN(limitNumber) || pageNumber < 1 || limitNumber < 1) {
-      return res.status(400).json({ message: "Invalid pagination parameters." }); 
+    return res.status(400).json({ message: "Invalid pagination parameters." });
+  }
+
+  // Start with the basic query
+  const query: any = {};
+
+  if (category) {
+    const categoryIds = Array.isArray(category) ? category : [category]; // Ensure category is an array
+    query.categoryId = { $in: categoryIds.map(id => new mongoose.Types.ObjectId(id as string)) };
+  }
+
+
+  if (inStock) {
+    query.inStock = true
+  }
+
+  if (outOfStock) {
+    query.inStock = false
+  }
+
+  // Handle price filter
+  if (min || max) {
+    query.price = {};
+    if (min) query.price.$gte = parseFloat(min as string);
+    if (max) query.price.$lte = parseFloat(max as string);
+  }
+
+  // Sort options
+  let sortOption: any = {};
+  if (sort) {
+    switch (sort) {
+      case 'alphabetical':
+        sortOption = { name: 1 }; // Ascending alphabetical order
+        break;
+      case 'newest':
+        sortOption = { createdAt: -1 }; // Latest products first
+        break;
+      case 'price-low-high':
+        sortOption = { price: 1 }; // Price from lowest to highest
+        break;
+      case 'price-high-low':
+        sortOption = { price: -1 }; // Price from highest to lowest
+        break;
+      default:
+        sortOption = { createdAt: -1 }; // Default to newest products
+        break;
+    }
+  } else {
+    sortOption = { createdAt: -1 }; // Default to newest products if no sort parameter
   }
 
   try {
-      // Calculate the number of documents to skip
-      const skip = (pageNumber - 1) * limitNumber;
+    // Calculate the number of documents to skip
+    const skip = (pageNumber - 1) * limitNumber;
 
-      // Query the database with pagination and population
-      const products = await Product.find()
-          .populate<{categoryId: categorySearchResult}>("categoryId")
-          .skip(skip)
-          .limit(limitNumber);
+    // Query the database with filters and pagination
+    const products = await Product.find(query)
+      .populate<{ categoryId: categorySearchResult }>("categoryId")
+      .skip(skip)
+      .limit(limitNumber)
+      .sort(sortOption);
 
-          const fetchedProduct = products.map<ProductSearchResult>((product) =>({
-            name: product.name,
-            price: product.price,
-            category: product.categoryId?.name || null,
-            categoryId: product.categoryId._id.toString() || null,
-            image: product.image,
-            discount: product.discount,
-            inStock: product.quantity > 0,
-            _id: product._id.toString(),
-            quantity: product.quantity,
-            description: product.description,
+    // Map products to the desired format
+    const fetchedProduct = products.map<ProductSearchResult>((product) => ({
+      name: product.name,
+      price: product.price,
+      category: product.categoryId?.name || null,
+      categoryId: product.categoryId._id.toString() || null,
+      image: product.image,
+      discount: product.discount,
+      inStock: product.inStock,
+      _id: product._id.toString(),
+      quantity: product.quantity,
+      description: product.description,
+    }));
 
-          }))
-      // Get the total count of products
-      const totalProducts = await Product.countDocuments();
+    // Get the total count of products matching the filters
+    const totalProducts = await Product.countDocuments(query);
 
-      // Send the response
-      return res.json({
-         pagination:{
-          currentPage: pageNumber,
-          totalPages: Math.ceil(totalProducts / limitNumber),
-          totalProducts,
-         },
-          products: fetchedProduct
-      });
+    // Send the response
+    return res.json({
+      pagination: {
+        currentPage: pageNumber,
+        totalPages: Math.ceil(totalProducts / limitNumber),
+        totalProducts,
+      },
+      products: fetchedProduct,
+    });
   } catch (error) {
-      console.error("Error fetching products:", error);
-      return res.status(500).json({ message: "An error occurred while fetching products." });
+    console.error("Error fetching products:", error);
+    return res.status(500).json({ message: "An error occurred while fetching products." });
   }
 };
 
@@ -109,7 +161,7 @@ export const createProduct: RequestHandler = async (req, res) => {
     quantity,
     featured,
     discount,
-    
+
   });
   await product.save();
   res.json({ product });
@@ -210,22 +262,22 @@ export const getUserFavorites: RequestHandler = async (req, res) => {
 };
 
 export const deleteUserFavourite: RequestHandler = async (req, res) => {
-    const userId = req.user.id;
-    const user = await User.findById(userId);
-    if (!user) return res.status(400).json({ message: "User not found" });
+  const userId = req.user.id;
+  const user = await User.findById(userId);
+  if (!user) return res.status(400).json({ message: "User not found" });
 
-    // Set the favourite array to an empty array
-    user.favourite = [];
-    
-    // Save the user document to update the database
-    await user.save();
+  // Set the favourite array to an empty array
+  user.favourite = [];
 
-    res.status(200).json({ message: "User favourites deleted successfully" });
+  // Save the user document to update the database
+  await user.save();
+
+  res.status(200).json({ message: "User favourites deleted successfully" });
 }
 
-export const totalNumberOfProducts: RequestHandler = async (req, res) =>{
+export const totalNumberOfProducts: RequestHandler = async (req, res) => {
   const totalProducts = await Product.countDocuments();
-  res.json({totalProducts})
+  res.json({ totalProducts })
 }
 
 export const toggleProductStock: RequestHandler = async (req, res) => {
@@ -274,7 +326,7 @@ export const exportProductToCSV: RequestHandler = async (req, res) => {
     res.setHeader("Content-Disposition", "attachment; filename=products.csv");
 
     // Send the CSV content
-    res.status(200).send(csvContent); 
+    res.status(200).send(csvContent);
   } catch (error) {
     console.error("Error generating CSV:", error);
     res.status(500).json({ message: "An error occurred while generating the CSV file." });
@@ -377,64 +429,64 @@ export const filterProductsByCategory: RequestHandler = async (req, res) => {
   // Parse and validate categoryId only if it exists
   let objectId;
   if (categoryId) {
-      try {
-          objectId = new mongoose.Types.ObjectId(categoryId as string);
-      } catch {
-          return res.status(400).json({ message: "Invalid Category ID format." });
-      }
+    try {
+      objectId = new mongoose.Types.ObjectId(categoryId as string);
+    } catch {
+      return res.status(400).json({ message: "Invalid Category ID format." });
+    }
   }
 
   const priceFilter: Record<string, number> = {};
   if (min) {
-      const minPrice = parseFloat(min as string);
-      if (!isNaN(minPrice)) priceFilter.$gte = minPrice;
+    const minPrice = parseFloat(min as string);
+    if (!isNaN(minPrice)) priceFilter.$gte = minPrice;
   }
   if (max) {
-      const maxPrice = parseFloat(max as string);
-      if (!isNaN(maxPrice)) priceFilter.$lte = maxPrice;
+    const maxPrice = parseFloat(max as string);
+    if (!isNaN(maxPrice)) priceFilter.$lte = maxPrice;
   }
 
   try {
-      // Build the query object
-      const query: Record<string, any> = {};
-      if (objectId) query.categoryId = objectId;
-      if (Object.keys(priceFilter).length > 0) query.price = priceFilter;
+    // Build the query object
+    const query: Record<string, any> = {};
+    if (objectId) query.categoryId = objectId;
+    if (Object.keys(priceFilter).length > 0) query.price = priceFilter;
 
-      // Pagination setup
-      const currentPage = parseInt(page as string, 10);
-      const pageLimit = parseInt(limit as string, 10);
-      const skip = (currentPage - 1) * pageLimit;
+    // Pagination setup
+    const currentPage = parseInt(page as string, 10);
+    const pageLimit = parseInt(limit as string, 10);
+    const skip = (currentPage - 1) * pageLimit;
 
-      // Query with filters and pagination
-      const [products, total] = await Promise.all([
-          Product.find(query)
-              .populate<{ categoryId: { name: string } }>("categoryId")
-              .select("name price image discount quantity featured categoryId")
-              .skip(skip)
-              .limit(pageLimit),
-          Product.countDocuments(query),
-      ]);
+    // Query with filters and pagination
+    const [products, total] = await Promise.all([
+      Product.find(query)
+        .populate<{ categoryId: { name: string } }>("categoryId")
+        .select("name price image discount quantity featured categoryId")
+        .skip(skip)
+        .limit(pageLimit),
+      Product.countDocuments(query),
+    ]);
 
-      const fetchedProducts = products.map(product => ({
-          name: product.name,
-          price: product.price,
-          category: product.categoryId?.name || null,
-          image: product.image,
-          discount: product.discount,
-          inStock: product.quantity > 0,
-          featured: product.featured,
-      }));
+    const fetchedProducts = products.map(product => ({
+      name: product.name,
+      price: product.price,
+      category: product.categoryId?.name || null,
+      image: product.image,
+      discount: product.discount,
+      inStock: product.inStock,
+      featured: product.featured,
+    }));
 
-      return res.json({
-          products: fetchedProducts,
-          total,
-          totalPages: Math.ceil(total / pageLimit),
-          currentPage,
-          limit: pageLimit,
-      });
+    return res.json({
+      products: fetchedProducts,
+      total,
+      totalPages: Math.ceil(total / pageLimit),
+      currentPage,
+      limit: pageLimit,
+    });
   } catch (error) {
-      console.error("Error filtering products:", error);
-      return res.status(500).json({ message: "An error occurred while fetching products." });
+    console.error("Error filtering products:", error);
+    return res.status(500).json({ message: "An error occurred while fetching products." });
   }
 };
 
@@ -446,32 +498,32 @@ export const sortProducts: RequestHandler = async (req, res) => {
   const validOrder = ["asc", "desc"];
 
   if (!validSortBy.includes(sortBy as string)) {
-      return res.status(400).json({ message: "Invalid sortBy parameter. Use 'alphabetical' or 'newest'." });
+    return res.status(400).json({ message: "Invalid sortBy parameter. Use 'alphabetical' or 'newest'." });
   }
 
   if (!validOrder.includes(order as string)) {
-      return res.status(400).json({ message: "Invalid order parameter. Use 'asc' or 'desc'." });
+    return res.status(400).json({ message: "Invalid order parameter. Use 'asc' or 'desc'." });
   }
 
   try {
-      // Determine sort options based on query
-      let sortOption: Record<string, any> = {};
+    // Determine sort options based on query
+    let sortOption: Record<string, any> = {};
 
-      if (sortBy === "alphabetical") {
-          sortOption = { name: order === "asc" ? 1 : -1 }; // Sort by name
-      } else if (sortBy === "newest") {
-          sortOption = { createdAt: order === "asc" ? 1 : -1 }; // Sort by createdAt
-      }
+    if (sortBy === "alphabetical") {
+      sortOption = { name: order === "asc" ? 1 : -1 }; // Sort by name
+    } else if (sortBy === "newest") {
+      sortOption = { createdAt: order === "asc" ? 1 : -1 }; // Sort by createdAt
+    }
 
-      // Fetch sorted products
-      const products = await Product.find()
-          .sort(sortOption)
-          .select("name price image discount featured createdAt");
+    // Fetch sorted products
+    const products = await Product.find()
+      .sort(sortOption)
+      .select("name price image discount featured createdAt");
 
-      return res.json({ products });
+    return res.json({ products });
   } catch (error) {
-      console.error("Error sorting products:", error);
-      return res.status(500).json({ message: "An error occurred while sorting products." });
+    console.error("Error sorting products:", error);
+    return res.status(500).json({ message: "An error occurred while sorting products." });
   }
 };
 
